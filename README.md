@@ -29,17 +29,17 @@ This script requires msys2 64Bit.
 
 Installation of msys2 64 Bit to the default c:\msys64 directory is described
 here:
-          http://msys2.github.io/
 
+    http://msys2.github.io/
 or, simply download and run this installer(same as linked to at site above):
 
-http://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-x86_64-20140910.exe/download
+    http://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-x86_64-20140910.exe/download
+Once msys2 is installed, double-click c:\mingw64\mingw64_shell.bat and type:
 
-Once msys2 is installed, launch (double-click) c:\msys64\mingw64_shell.bat
-
-To retrieve the latest version of the script, in the terminal type:
-     wget https://github.com/sxcer/sxc_winbuild/raw/master/sxc_winbuild.sh
-
+    pacman -Sy
+    pacman -S wget
+    wget https://github.com/sxcer/sxc_winbuild/raw/master/sxc_winbuild.sh
+    sh sxc_winbuild.sh
 If you do not edit BASEDIR near the top of the script, C:\src will be used
 to build in. All downloads, unpacking and building will be done in this
 directory or subdirectories of it.
@@ -47,7 +47,6 @@ directory or subdirectories of it.
 Launch the script (with no args to simply "build all"):
 
      sh sxc_winbuild.sh
-
 It will take a while to download all packages and build (including
 building Qt5 from source) so be prepared to wait.
 
