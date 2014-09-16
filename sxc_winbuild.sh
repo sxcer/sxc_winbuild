@@ -56,7 +56,7 @@ MSYS2_REQUIRED_PKGS="git wget diffutils p7zip tar unzip automake-wrapper autocon
                      libtool mingw-w64-x86_64-gcc make pkg-config \
                      mingw-w64-x86_64-make"
 function check_toolchain() {
-    missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | awk '/not found/{print $3}')
+    missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | awk '/package .* was not found/{print $3}' | sed "s/'//g" )
     if [ -n "$missing" ] ; then
         echo "Installing $missing ..."
         pacman -S $missing && echo "done." || exit 1
@@ -64,7 +64,11 @@ function check_toolchain() {
 }
 # need to check toolchain early because gcc version is retrieved during
 # setting of BOOST_SUFFIX var.
-TOOLCHAIN_OK=$(check_toolchain)
+if check_toolchain ; then
+    TOOLCHAIN_OK=0
+else
+    TOOLCHAIN_OK=1
+fi
 
 # Dependency packages to build.
 # These are packages required by the buildprocess of *coin
