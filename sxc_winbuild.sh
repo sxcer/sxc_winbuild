@@ -48,7 +48,7 @@ BASEDIR=${USER_BASEDIR:="/c/src"}
 CACHEDIR=${BASEDIR}/.download_cache # A copy of downloaded files are kept here
 
 # Make this available for use for in buildcmds with make and mingw32-make
-# -j option. (tends to break the make, so I removed -j's from buildcmds) 
+# -j option. (tends to break the make, so I removed -j's from buildcmds)
 NPROC=$(/usr/bin/nproc)
 
 # Toolchain/tools packages and check/install function
@@ -63,11 +63,11 @@ function check_toolchain() {
     fi
 }
 # need to check toolchain early because gcc version is retrieved during
-# setting of BOOST_SUFFIX var. 
+# setting of BOOST_SUFFIX var.
 TOOLCHAIN_OK=$(check_toolchain)
 
 # Dependency packages to build.
-# These are packages required by the buildprocess of *coin 
+# These are packages required by the buildprocess of *coin
 # Built in left to right order, consider dependencies when modifying.
 #
 # If you don't want a gui client, I assume you could remove QT and QTTOOLS to
@@ -153,7 +153,7 @@ BOOST_MSYS2_BUILDCMDS="# boost build commands
     runtime-link=static \\
     stage"
 
-	
+
 MINIUPNPC=miniupnpc
 MINIUPNPC_VER=1.9
 MINIUPNPC_URL=http://miniupnp.free.fr/files
@@ -366,24 +366,24 @@ function unpack() {
 
     local filename="${1}"
     local unpackpath="${BASEDIR}/$2"
-	
-	# skip unpack if the unpackdir contains .built file indicating
-	# it's been built successfully
-	if [ -f "${unpackpath}/.built" ] ; then
+
+    # skip unpack if the unpackdir contains .built file indicating
+    # it's been built successfully
+    if [ -f "${unpackpath}/.built" ] ; then
             echo "${unpackdir}/.built file present, skipping unpack"
-			echo "If you really want to re-unpack, then run the clean command for this"
+            echo "If you really want to re-unpack, then run the clean command for this"
             echo "package or manually remove the file:"
-			echo "   ${unpackpath}/.built"
-			return 0
+            echo "   ${unpackpath}/.built"
+            return 0
     fi
-	 
-	# remove any existing unpackdir for this pkg
-	if [ -d "$unpackpath" ] ; then
-	    echo "Removing existing unpackdir:"
-		echo "$unpackpath"
-		/bin/rm -rf "$unpackpath"
+
+    # remove any existing unpackdir for this pkg
+    if [ -d "$unpackpath" ] ; then
+        echo "Removing existing unpackdir:"
+        echo "$unpackpath"
+        /bin/rm -rf "$unpackpath"
     fi
-	
+
     # Get final extension ( from the end back to rightmost . )
     final_ext="${filename##*.}"
 
@@ -475,7 +475,7 @@ function download() {
         echo "Removing existing file: $dest"
         rm -f "$dest" >/dev/null 2>&1
     fi
-    
+
     # If the file is in the cache and we have an expected MD5, check it
     if  download_is_cached "$2" ; then
         #If we have an expected MD5, check it
@@ -493,16 +493,16 @@ function download() {
             /bin/cp -f "$cache" "$dest" && return 0
         fi
     fi
-    
+
     # Download wasn't cached, or was cached but MD5 did not match
     wget --no-check-certificate -t3 --timeout=15 "$1" -O "$cache" || return 1
-    
+
     #If we have an expected MD5
     if [ -n "$md5" ] ; then
         if mdfive "$cache" "$md5" ; then
             #MD5 good, keep copy the file over and return good
-			echo "Copy cached file to:"
-			echo "$dest"
+            echo "Copy cached file to:"
+            echo "$dest"
             /bin/cp -f "$cache" "$dest" && return 0
         else
             #MD5 verification failed, delete file from cache
@@ -512,11 +512,11 @@ function download() {
         fi
     else
         #We dont' have an expected MD5 so we must consider it OK
-		echo "Copy cached file to:"
-		echo "$dest"
+        echo "Copy cached file to:"
+        echo "$dest"
         /bin/cp -f "$cache" "$dest" && return 0
     fi
-    
+
     #can't get here so return 1 if we do
     return 1
 }
@@ -589,10 +589,10 @@ function unpack_pkgs() {
         eval local src=\${${pkg}_SRC}
         eval local md5=\${${pkg}_MD5}
         eval local unpackdir=\${${pkg}_UNPACKDIR:=${name}-\${${pkg}_VER}}
-        
+
         # if we don't have the sourceball, get it
         [ -f "${BASEDIR}/$src" ] || download_pkgs "$pkg" || exit 1
-        
+
         unpack "$src" "$unpackdir" || exit 1
     done
 }
@@ -612,16 +612,16 @@ function build_pkgs() {
         eval local md5=\${${pkg}_MD5}
         eval local unpackdir=\${${pkg}_UNPACKDIR:=${name}-\${${pkg}_VER}}
         eval local msys2_buildcmds=\${${pkg}_MSYS2_BUILDCMDS}
-		
+
         # if we don't have the sourceball, get it
         [ -f "${BASEDIR}/$src" ] || download_pkgs "$pkg" || exit 1
-        
+
         # Assume any unpacked dir present is ok
         [ -d "${BASEDIR}/$unpackdir" ] || \
              unpack "$src" "$unpackdir" || exit 1
-		
-		#build if it's not marked "built"
-		if [ -f "${BASEDIR}/${unpackdir}/.built" ] ; then
+
+        #build if it's not marked "built"
+        if [ -f "${BASEDIR}/${unpackdir}/.built" ] ; then
             echo "${unpackdir}/.built file present, skipping build"
         else
             echo "Building $name in:"
@@ -631,14 +631,14 @@ function build_pkgs() {
             buildcmds $pkg
             cd "${BASEDIR}/$unpackdir"
             eval "$msys2_buildcmds"
-            if [ "$?" -eq 0 ] ; then 
-			    touch "${BASEDIR}/${unpackdir}/.built"
-			else
-			   # quit building here so user can see packge didn't build
-			   echo "$pkg build failed."
-			   cd "$BASEDIR"
-			   return 1
-			fi
+            if [ "$?" -eq 0 ] ; then
+                touch "${BASEDIR}/${unpackdir}/.built"
+            else
+               # quit building here so user can see packge didn't build
+               echo "$pkg build failed."
+               cd "$BASEDIR"
+               return 1
+            fi
             cd "$BASEDIR"
         fi
     done
@@ -646,17 +646,17 @@ function build_pkgs() {
 
 function check_pkg_args() {
     # Make sure any package args are for valid packages
-	# $1 should be list of packages
-	
-	while [ -n "$1" ] ; do
-	    local pkg="$1"
-	    if [  "${PKGS/$pkg}x" == "${PKGS}x" ] ; then
-		    echo "$pkg is not a valid PKG, run $0 pkgs to see valid PKGs"
-			return 1
-		fi
-		shift 1
-	done
-	return 0
+    # $1 should be list of packages
+
+    while [ -n "$1" ] ; do
+        local pkg="$1"
+        if [  "${PKGS/$pkg}x" == "${PKGS}x" ] ; then
+            echo "$pkg is not a valid PKG, run $0 pkgs to see valid PKGs"
+            return 1
+        fi
+        shift 1
+    done
+    return 0
 }
 
 # Create BASEDIR and CACHEDIR if needed
@@ -675,7 +675,7 @@ if [ "$#" -gt 0 ] ; then
             ;;
         buildcmds)
             shift 1
-			check_pkg_args $* && buildcmds $*
+            check_pkg_args $* && buildcmds $*
             exit
             ;;
         pkgs)
@@ -707,32 +707,32 @@ if [ "$#" -gt 0 ] ; then
             ;;
         dirs)
             echo " BASEDIR=${BASEDIR}"
-			echo "CACHEDIR=${CACHEDIR}"
-			;;
+            echo "CACHEDIR=${CACHEDIR}"
+            ;;
         help|*)
             echo "  Usage: $0 [CMD] [PKG]..."
-			echo ""
-			echo "  If launched with no args, all packages will be built."
-			echo "  CMD is one of:"
-			echo "         clean  Removes pkg files/dirs for all packages or [PKG]..."
-			echo "          pkgs  Lists all valid PKG names this script understands"
-			echo "      download  Downloads source for all packages or [PKG}..."
-			echo "        unpack  Unpacks(downloads if necessary) all packages or [PKG]..."
-			echo "     buildcmds  Write build commands for all packages to pkgname.buildcmds"
+            echo ""
+            echo "  If launched with no args, all packages will be built."
+            echo "  CMD is one of:"
+            echo "         clean  Removes pkg files/dirs for all packages or [PKG]..."
+            echo "          pkgs  Lists all valid PKG names this script understands"
+            echo "      download  Downloads source for all packages or [PKG}..."
+            echo "        unpack  Unpacks(downloads if necessary) all packages or [PKG]..."
+            echo "     buildcmds  Write build commands for all packages to pkgname.buildcmds"
             echo "                or [PKG]..."
-			echo "         build  Builds (downloads and unpacks if necessary) all packages or"
-			echo "                [PKG]..."
-			echo "          dirs  Print BASEDIR and CACHEDIR being used"
-			echo "          help  This help message"
-			echo ""
+            echo "         build  Builds (downloads and unpacks if necessary) all packages or"
+            echo "                [PKG]..."
+            echo "          dirs  Print BASEDIR and CACHEDIR being used"
+            echo "          help  This help message"
+            echo ""
             echo "If no PKG arguments are present, all known packages assumed as targets"
-			echo "making \"no args\" the equivalent of \"build all packages\""
+            echo "making \"no args\" the equivalent of \"build all packages\""
             exit
             ;;
     esac
     exit
 fi
 
-# If we get here, no arguments were passed, we are going to 
+# If we get here, no arguments were passed, we are going to
 # download, unpack and build all pkgs.
 build_pkgs $PKGS
