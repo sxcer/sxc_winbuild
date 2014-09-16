@@ -185,7 +185,7 @@ LIBPNG_MD5=297388a6746a65a2127ecdeb1c6e5c82
 LIBPNG_URL=http://prdownloads.sourceforge.net/libpng
 LIBPNG_MSYS2_BUILDCMDS="# libpng build commands
 ./configure --disable-shared
-make -j $NPROC
+make
 cp ./.libs/libpng16.a ./.libs/libpng.a"
 
 
@@ -237,7 +237,7 @@ mingw32-make confclean
                  -no-audio-backend \\
                  -no-wmf-backend \\
                  -no-qml-debug
-mingw32-make -j $NPROC"
+mingw32-make"
 
 
 QTTOOLS=qttools
