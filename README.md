@@ -60,7 +60,5 @@ If you want the coin build to build the *coin.exe installer in addition to
 *coin-qt.exe, you need to have NSIS installed (in Windows)
 See http://nsis.sf.net for NSIS installer info.
 
-Building with NSIS build is untested, but should be autodetected by configure script for
-v0.9+ coins
-
-# By default this script will use C:\src (/c/src in msys2 syntax) as it's base dir.
+Building with NSIS is untested but should be autodetected by configure script
+for v0.9+ coins
