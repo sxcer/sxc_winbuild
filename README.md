@@ -34,7 +34,7 @@ here:
 or, simply download and run this installer(same as linked to at site above):
 
     http://sourceforge.net/projects/msys2/files/Base/x86_64/msys2-x86_64-20140910.exe/download
-Once msys2 is installed, double-click c:\mingw64\mingw64_shell.bat and type:
+Once msys2 is installed, double-click c:\msys64\mingw64_shell.bat and type:
 
     pacman -Sy
     pacman -S wget
