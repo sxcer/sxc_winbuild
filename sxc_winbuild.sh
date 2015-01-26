@@ -589,7 +589,7 @@ function unpack_pkgs() {
 
     for pkg in $pkgs ; do
         eval local name=\${${pkg}}
-        eval local url=\${${pck}_URL}/\${${pkg}_SRC}
+        eval local url=\${${pkg}_URL}/\${${pkg}_SRC}
         eval local src=\${${pkg}_SRC}
         eval local md5=\${${pkg}_MD5}
         eval local unpackdir=\${${pkg}_UNPACKDIR:=${name}-\${${pkg}_VER}}
