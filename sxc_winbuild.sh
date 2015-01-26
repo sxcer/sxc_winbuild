@@ -61,6 +61,16 @@ function check_toolchain() {
         echo "Installing $missing ..."
         pacman -S $missing && echo "done." || exit 1
     fi
+
+    gcc -v >/dev/null 2>&1
+    if  [ $? -ne 0 ] ; then
+       echo "gcc not found, path contains:"
+       echo "$PATH"
+       echo "/mingw64/bin or /mingw32/bin should be first."
+       echo "Check for conflicting .profile or .bashrc in ~/"
+       exit 1
+    fi
+
 }
 # need to check toolchain early because gcc version is retrieved during
 # setting of BOOST_SUFFIX var.
