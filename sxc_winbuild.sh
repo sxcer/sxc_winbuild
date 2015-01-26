@@ -654,7 +654,7 @@ function check_pkg_args() {
 
     while [ -n "$1" ] ; do
         local pkg="$1"
-        if [  "${PKGS/$pkg}x" == "${PKGS}x" ] ; then
+        if [  "${PKGS/ $pkg }x" == "${PKGS}x" ] ; then
             echo "$pkg is not a valid PKG, run $0 pkgs to see valid PKGs"
             return 1
         fi
