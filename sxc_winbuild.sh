@@ -184,12 +184,7 @@ MINIUPNPC_URL=http://miniupnp.free.fr/files
 MINIUPNPC_SRC=${MINIUPNPC}-${MINIUPNPC_VER}.tar.gz
 MINIUPNPC_MD5=5ef3ba321e6df72d6519b728b292073e
 MINIUPNPC_MSYS2_BUILDCMDS="# miniupnpc build commands
-# Remove the copy that ln -s made at the end of the
-# last build. windows does not support symlinks, ln -s
-# simluates it with a regular copy
-/bin/rm -f miniupnpc
-mingw32-make.exe  -f Makefile.mingw init upnpc-static && \
-cd .. && ln -s miniupnpc-$MINIUPNPC_VER miniupnpc"
+mingw32-make.exe  -f Makefile.mingw init upnpc-static"
 
 
 PROTOBUF=protobuf
