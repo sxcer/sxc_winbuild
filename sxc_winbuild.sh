@@ -23,32 +23,40 @@
 # It will take a long while to download all packages and build (including
 # building Qt5 from source) so be prepared to wait.
 
-# By default this script will use C:\src (/c/src in msys2 syntax) as it's
-# base dir. Specify a different directory here. Avoid dirs with spaces,
-# keep it simple.
-USER_BASEDIR=
-#USER_BASEDIR=/c/src
-#USER_BASEDIR=/c/Users/jsmith/test
-#USER_BASEDIR=/c/Users/jsmith/src
+# By default this script will use "src/" in your msys2 home dir (~/src ).
+# The actual location from windows viewpoint is C:\msys64\home\<username>\src
+# From within msys shells, / is equivalent to c:\msys64 so:
+#    /home/<username>/src
+# but also accessible using the absolute path (in msys2 syntax):
+#    /c/msys64/home/<username>/src
+#
+# Specify a different directory here. Avoid dirs with spaces, keep it simple.
+# Keep in mind that if there is a HOME env var set in windows, it will
+# propagate to your msys2 environment and your home dir will not be the msys2
+# default of /home/<username>
+CUSTOM_BASEDIR=
+#CUSTOM_BASEDIR=/c/src
+#CUSTOM_BASEDIR=/c/Users/jsmith/src
+#CUSTOM_BASEDIR=/x/src
 
 
 ##########################################################################
 # Below here, you should know a little about what you are doing to edit.
 ##########################################################################
 
-# Default to the current dir as the base dir.... I assume there will be
+# This would use the current dir as the base dir.... I assume there will be
 # problems running from directories/paths with spaces (untested)
 #BASEDIR=${USER_BASEDIR:="$(/bin/pwd)"}
 
 # Default BASEDIR setting
-BASEDIR=${USER_BASEDIR:="/c/src"}
+BASEDIR=${USER_BASEDIR:="~/src"}
 
 # Directory used to store a copy of downloaded source packages. They are
 # not deleted during a "clean up" run of this script.
-CACHEDIR=${BASEDIR}/.download_cache # A copy of downloaded files are kept here
+CACHEDIR=${BASEDIR}/.download_cache
 
 # Make this available for use for in buildcmds with make and mingw32-make
-# -j option. (tends to break the make, so I removed -j's from buildcmds)
+# -j option. (tends to break the make, so I removed -j's from some buildcmds)
 NPROC=$(/usr/bin/nproc)
 
 # Toolchain/tools packages and check/install function
@@ -81,12 +89,12 @@ else
 fi
 
 # Dependency packages to build.
-# These are packages required by the buildprocess of *coin
+# These are packages *generally* required by the buildprocess of *coin
 # Built in left to right order, consider dependencies when modifying.
 #
 # If you don't want a gui client, I assume you could remove QT and QTTOOLS to
-# save quite a bit of build time(untested). *coin configure scripts skip qui
-# if they can't find Qt
+# save quite a bit of build time(untested). *coin configure scripts seem to
+# skip GUI build if they can't find Qt.
 DEPS="OPENSSL BDB BOOST MINIUPNPC PROTOBUF LIBPNG QRENCODE QT QTTOOLS"
 
 # Add DEPS to PKGS list
