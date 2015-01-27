@@ -49,7 +49,7 @@ CUSTOM_BASEDIR=
 #BASEDIR=${USER_BASEDIR:="$(/bin/pwd)"}
 
 # Default BASEDIR setting
-BASEDIR=${USER_BASEDIR:="~/src"}
+eval BASEDIR=${USER_BASEDIR:="~/src"}
 
 # Directory used to store a copy of downloaded source packages. They are
 # not deleted during a "clean up" run of this script.
