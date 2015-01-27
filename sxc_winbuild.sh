@@ -131,9 +131,7 @@ OPENSSL_URL=http://www.openssl.org/source
 OPENSSL_SRC=${OPENSSL}-${OPENSSL_VER}.tar.gz
 OPENSSL_MD5=cdb22925fc9bc97ccbf1e007661f2aa6
 OPENSSL_MSYS2_BUILDCMDS="# openssl build commands
-+./Configure no-zlib no-shared no-dso no-krb5 no-camellia no-capieng no-cast no-cms no-dtls1 no-gost no-gmp no-heartbeats no-idea no-jpake no-md2 no-mdc2 no-rc5 no-rdrand no-rfc3779 no-rsax no-sctp no-seed no-sha0 no-static_engine no-whirlpool no-rc2 no-rc4 no-ssl2 no-ssl3 mingw64
-./Configure no-shared no-dso mingw64
-
+./Configure no-zlib no-shared no-dso no-krb5 no-camellia no-capieng no-cast no-cms no-dtls1 no-gost no-gmp no-heartbeats no-idea no-jpake no-md2 no-mdc2 no-rc5 no-rdrand no-rfc3779 no-rsax no-sctp no-seed no-sha0 no-static_engine no-whirlpool no-rc2 no-rc4 no-ssl2 no-ssl3 mingw64
 make"
 
 
