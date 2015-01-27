@@ -13,10 +13,7 @@ It manages to build everything from an msys2 prompt, but this is most
 likely a function of msys2 and not any real improvements in nitrogenetics'
 instructions.
 
-In the simplest case, running this script with no args builds everything all
-the way up to and including sexcoin-qt.
-
-It also provides a few arguments to allow for repeating or focusing on
+It provides a few options to allow for repeating or focusing on
 specific parts of the build process.
 
 Building of bitcoin-qt is supported, but disabled by default. You simply
@@ -40,7 +37,12 @@ Once msys2 is installed, double-click c:\msys64\mingw64_shell.bat and type:
     pacman -S wget
     wget https://github.com/sxcer/sxc_winbuild/raw/master/sxc_winbuild.sh
     sh sxc_winbuild.sh
-If you do not edit BASEDIR near the top of the script, C:\src will be used
+Make sure you do NOT run the above from the msys2_shell.bat file, it won't 
+work. That shell is for working on msys2 itself and not for building with
+mingw compilers. I will be adding a check that ensures you are in the right
+environment but it's probably not there yet.
+
+If you do not edit BASEDIR near the top of the script, ~/src will be used
 to build in. All downloads, unpacking and building will be done in this
 directory or subdirectories of it.
 
