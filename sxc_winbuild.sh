@@ -678,6 +678,24 @@ function check_pkg_args() {
     return 0
 }
 
+function usage() {
+    echo "  Usage: $0 [CMD] [PKG]..."
+    echo ""
+    echo "  CMD is one of:"
+    echo "         clean  Removes pkg files/dirs for all packages or [PKG]..."
+    echo "          pkgs  Lists all valid PKG names this script understands"
+    echo "      download  Downloads source for all packages or [PKG}..."
+    echo "        unpack  Unpacks(downloads if necessary) all packages or [PKG]..."
+    echo "     buildcmds  Write build commands for all packages to pkgname.buildcmds"
+    echo "                or [PKG]..."
+    echo "         build  Builds (downloads and unpacks if necessary) all packages or"
+    echo "                [PKG]..."
+    echo "          dirs  Print BASEDIR and CACHEDIR being used"
+    echo "          help  This help message"
+    echo ""
+    echo "If no PKG arguments are present, all known packages assumed as targets"
+}
+
 # Create BASEDIR and CACHEDIR if needed
 [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR"
 [ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
@@ -729,29 +747,10 @@ if [ "$#" -gt 0 ] ; then
             echo "CACHEDIR=${CACHEDIR}"
             ;;
         help|*)
-            echo "  Usage: $0 [CMD] [PKG]..."
-            echo ""
-            echo "  If launched with no args, all packages will be built."
-            echo "  CMD is one of:"
-            echo "         clean  Removes pkg files/dirs for all packages or [PKG]..."
-            echo "          pkgs  Lists all valid PKG names this script understands"
-            echo "      download  Downloads source for all packages or [PKG}..."
-            echo "        unpack  Unpacks(downloads if necessary) all packages or [PKG]..."
-            echo "     buildcmds  Write build commands for all packages to pkgname.buildcmds"
-            echo "                or [PKG]..."
-            echo "         build  Builds (downloads and unpacks if necessary) all packages or"
-            echo "                [PKG]..."
-            echo "          dirs  Print BASEDIR and CACHEDIR being used"
-            echo "          help  This help message"
-            echo ""
-            echo "If no PKG arguments are present, all known packages assumed as targets"
-            echo "making \"no args\" the equivalent of \"build all packages\""
-            exit
+            usage
             ;;
     esac
-    exit
+else
+    echo -e "No command given\n"
+    usage
 fi
-
-# If we get here, no arguments were passed, we are going to
-# download, unpack and build all pkgs.
-build_pkgs $PKGS
