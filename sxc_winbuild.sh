@@ -6,8 +6,7 @@
 # See README here:
 # https://github.com/sxcer/sxc_winbuild/blob/master/README.md
 #
-# Run this script from an msys2 shell with no args to build sexcoin-qt.exe
-# Run "sxc_winbuild.sh help" to see options
+# Run "sxc_winbuild.sh" to see options
 #
 #                  *msys2 Is Required (not msys)*
 # Installation of msys2 x86_64 to the default c:\msys64 directory
