@@ -664,13 +664,20 @@ function check_pkg_args() {
     # Make sure any package args are for valid packages
     # $1 should be list of packages
 
-    while [ -n "$1" ] ; do
-        local pkg="$1"
-        if [  "${PKGS/ $pkg }x" == "${PKGS}x" ] ; then
-            echo "$pkg is not a valid PKG, run $0 pkgs to see valid PKGs"
-            return 1
-        fi
-        shift 1
+    while [ "$#" -gt 0 ] ; do
+        local arg="$1"
+        local pkg=''
+
+        #iterate through master pkg list
+        for pkg in $PKGS ; do
+            if [ "$arg"x == "$pkg"x ]; then
+                shift 1
+                # jump out of forloop and back to top of while loop
+                continue 2
+            fi
+        done
+        echo "$arg is not a valid PKG, run $0 pkgs to see valid PKGs"
+        return 1
     done
     return 0
 }
