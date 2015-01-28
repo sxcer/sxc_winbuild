@@ -551,7 +551,7 @@ function clean() {
         eval local src=\${${pkg}_SRC}
         eval local unpackdir=\${${pkg}_UNPACKDIR:=${name}-\${${pkg}_VER}}
         echo -n "Cleaning $pkg ..."
-        /bin/rm -rf "$unpackdir" "$src" "${name}.buildcmds" "${CACHEDIR}/${src}" && \
+        /bin/rm -rf "$unpackdir" "$src" "${name}.buildcmds" && \
             echo "done." || exit 1
     done
 }
