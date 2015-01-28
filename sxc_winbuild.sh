@@ -496,7 +496,7 @@ function download() {
     if  download_is_cached "$2" ; then
         #If we have an expected MD5, check it
         if [ -n "$md5" ] ; then
-            if mdfive $cache  $md5 ; then
+            if mdfive "$cache"  $md5 ; then
                 # just copy to dest
                 /bin/cp -f "$cache" "$dest" && return 0
             else
