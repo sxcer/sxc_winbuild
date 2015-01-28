@@ -47,8 +47,9 @@ CUSTOM_BASEDIR=
 # problems running from directories/paths with spaces (untested)
 #BASEDIR=${CUSTOM_BASEDIR:="$(/bin/pwd)"}
 
-# Default BASEDIR setting
-eval BASEDIR=${CUSTOM_BASEDIR:="~/src"}
+# Default BASEDIR setting or user specified
+# leave eval in incase CUSTOM_BASEDIR has a ~, which needs to be expanded
+eval BASEDIR=${CUSTOM_BASEDIR:="\"$(pwd)/src\""}
 
 # Directory used to store a copy of downloaded source packages. They are
 # not deleted during a "clean up" run of this script.
