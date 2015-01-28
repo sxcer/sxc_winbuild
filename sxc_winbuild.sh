@@ -750,11 +750,18 @@ if [ "$#" -gt 0 ] ; then
             echo " BASEDIR=${BASEDIR}"
             echo "CACHEDIR=${CACHEDIR}"
             ;;
-        help|*)
+        help)
             usage
+	    exit 0
             ;;
+        *)
+            echo -e "Unknown command/option given\n"
+            usage
+	    exit 1
+	    ;;
     esac
 else
     echo -e "No command given\n"
     usage
+    exit 1
 fi
