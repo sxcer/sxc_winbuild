@@ -45,10 +45,10 @@ CUSTOM_BASEDIR=
 
 # This would use the current dir as the base dir.... I assume there will be
 # problems running from directories/paths with spaces (untested)
-#BASEDIR=${USER_BASEDIR:="$(/bin/pwd)"}
+#BASEDIR=${CUSTOM_BASEDIR:="$(/bin/pwd)"}
 
 # Default BASEDIR setting
-eval BASEDIR=${USER_BASEDIR:="~/src"}
+eval BASEDIR=${CUSTOM_BASEDIR:="~/src"}
 
 # Directory used to store a copy of downloaded source packages. They are
 # not deleted during a "clean up" run of this script.
