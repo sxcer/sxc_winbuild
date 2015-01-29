@@ -22,7 +22,9 @@
 # It will take a long while to download all packages and build (including
 # building Qt5 from source) so be prepared to wait.
 
-# By default this script will use "src/" in your msys2 home dir (~/src ).
+# By default this script will use "./src". Assuming you just installed msys2
+# and ran the shell shortcut this is probably /home/<username>/src.
+#
 # The actual location from windows viewpoint is C:\msys64\home\<username>\src
 # From within msys shells, / is equivalent to c:\msys64 so:
 #    /home/<username>/src
@@ -33,27 +35,85 @@
 # Keep in mind that if there is a HOME env var set in windows, it will
 # propagate to your msys2 environment and your home dir will not be the msys2
 # default of /home/<username>
+# Do NOT use a path with whitespace, libtool breaks in Protobuf build if there
+# is whitespace
 CUSTOM_BASEDIR=
 #CUSTOM_BASEDIR=/c/src
 #CUSTOM_BASEDIR=/c/Users/jsmith/src
 #CUSTOM_BASEDIR=/x/src
+#CUSTOM_BASEDIR=/c/tmp/src
 
 
 ##########################################################################
 # Below here, you should know a little about what you are doing to edit.
 ##########################################################################
 
-# This would use the current dir as the base dir.... I assume there will be
-# problems running from directories/paths with spaces (untested)
-#BASEDIR=${CUSTOM_BASEDIR:="$(/bin/pwd)"}
 
-# Default BASEDIR setting or user specified
-# leave eval in incase CUSTOM_BASEDIR has a ~, which needs to be expanded
-eval BASEDIR=${CUSTOM_BASEDIR:="\"$(pwd)/src\""}
+function use_custom_basedir() {
+    # Check if user set CUSTOM_BASEDIR and if we can use it
+    # Return 0 if we are using it, 1 otherwise
+    if [ "$CUSTOM_BASEDIR"x == "x" ] ; then
+        return 1
+    fi
+
+    # Expand any ~ now or it will cause problems later
+    eval CUSTOM_BASEDIR="$CUSTOM_BASEDIR"
+
+    # check for whitespace in path
+    if [ "${CUSTOM_BASEDIR/[:space:]}"x != "${CUSTOM_BASEDIR}"x ] ; then
+        echo "Unable to use your CUSTOM_BASEDIR:"
+        echo "   $CUSTOM_BASEDIR"
+        echo "because it has a space in it which will cause build problems."
+        return 1
+    fi
+
+    # go ahead and use it
+    BASEDIR="$CUSTOM_BASEDIR"
+    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
+    echo "Using custom directory $BASEDIR"
+}
+
+
+function use_default_basedir() {
+    # Use default basedir if it's ok
+    local d="$(pwd)/src"
+
+    # check for whitespace in path
+    if [ "${d/([:space:])}"x != "${d}"x ] ; then
+        echo "Unable to use your current working directory as default base dir:"
+        echo "   $d"
+        echo "It has a space which will cause problems with the build."
+        return 1
+    fi
+    #no space, let it be used
+    BASEDIR="$d"
+    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
+    echo "Using default directory: $BASEDIR"
+}
+
+
+function use_failsafe_basedir() {
+    # using something that should be ok no matter what
+    BASEDIR=/tmp/src
+    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
+    echo "Using failsafe directory: $BASEDIR"
+}
+
+# Use user specified dir, default dir or failsafe dir
+# as BASEDIR
+if ! use_custom_basedir ; then
+    if ! use_default_basedir ; then
+        if ! use_failsafe_basedir ; then
+            echo "Can't get usable base directory"
+            exit 1
+        fi
+    fi
+fi
 
 # Directory used to store a copy of downloaded source packages. They are
 # not deleted during a "clean up" run of this script.
 CACHEDIR=${BASEDIR}/.download_cache
+[ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
 
 # Make this available for use for in buildcmds with make and mingw32-make
 # -j option. (tends to break the make, so I removed -j's from some buildcmds)
@@ -700,10 +760,6 @@ function usage() {
     echo ""
     echo "If no PKG arguments are present, all known packages assumed as targets"
 }
-
-# Create BASEDIR and CACHEDIR if needed
-[ -d "$BASEDIR" ] || mkdir -p "$BASEDIR"
-[ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
 
 cd "$BASEDIR"
 
