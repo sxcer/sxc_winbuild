@@ -764,21 +764,27 @@ function build_pkgs() {
     done
 }
 
-function check_pkg_args() {
+function init_pkg_args() {
     # Make sure any package args are for valid packages
-    # $1 should be list of packages
+    # $2 through $n should be list of packages
 
-    while [ "$#" -gt 0 ] ; do
-        local arg="$1"
-        local pkg=''
+    local args=''
+    local arg=''
+    local pkg=''
 
-        #iterate through master pkg list
+    # If no args are passed, add all packages to the list
+    if [ "$#" -eq 0 ] ; then
+       args="$PKGS"
+    else
+        args="$*"
+    fi
+
+    for arg in $args ; do
+        # iterate master pkg list
         for pkg in $PKGS ; do
             if [ "$arg"x == "$pkg"x ]; then
-                shift 1
-                #run init_<PKG>_vars function to load variables
-                eval init_${pkg}_vars
-                # jump out of forloop and back to top of while loop
+                eval init_${arg}_vars
+                # jump out 2 forloops
                 continue 2
             fi
         done
@@ -813,12 +819,12 @@ if [ "$#" -gt 0 ] ; then
     case $1 in
         clean)
             shift 1
-            check_pkg_args $* && clean $*
+            init_pkg_args $* && clean $*
             exit
             ;;
         buildcmds)
             shift 1
-            check_pkg_args $* && buildcmds $*
+            init_pkg_args $* && buildcmds $*
             exit
             ;;
         pkgs)
@@ -835,17 +841,17 @@ if [ "$#" -gt 0 ] ; then
             ;;
         download)
             shift 1
-            check_pkg_args $* && download_pkgs $*
+            init_pkg_args $* && download_pkgs $*
             exit
             ;;
         unpack)
             shift 1
-            check_pkg_args $* && unpack_pkgs $*
+            init_pkg_args $* && unpack_pkgs $*
             exit
             ;;
         build)
             shift 1
-            check_pkg_args $* && build_pkgs $*
+            init_pkg_args $* && build_pkgs $*
             exit
             ;;
         dirs)
