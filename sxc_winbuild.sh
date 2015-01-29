@@ -120,11 +120,13 @@ CACHEDIR=${BASEDIR}/.download_cache
 NPROC=$(/usr/bin/nproc)
 
 # Toolchain/tools packages and check/install function
-MSYS2_REQUIRED_PKGS="git wget diffutils p7zip tar unzip automake-wrapper autoconf \
-                     libtool mingw-w64-x86_64-gcc make pkg-config \
+MSYS2_REQUIRED_PKGS="git wget diffutils p7zip unzip automake-wrapper autoconf \
+                     tar libtool mingw-w64-x86_64-gcc make pkg-config \
                      mingw-w64-x86_64-make"
+
 function check_toolchain() {
-    missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | awk '/package .* was not found/{print $3}' | sed "s/'//g" )
+    missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | \
+              awk '/package .* was not found/{print $3}' | sed "s/'//g" )
     if [ -n "$missing" ] ; then
         echo "Installing $missing ..."
         pacman -S $missing && echo "done." || exit 1
