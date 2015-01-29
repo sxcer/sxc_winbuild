@@ -168,9 +168,22 @@ PKGS+=" SXCNG"
 # Build bitcoin
 #PKGS+=" BTC"
 
+
 ##############################################################################
 #
 # Package Definitions
+#
+# Definitions for each package are wrapped in a single function per pkg
+#    init_<PKG>_vars()
+#
+# This way they can be invoked later in the script than there physical ordering
+# by line number would indicate.
+#
+# The build command vars generally require BASEDIR to be available which means
+# you must do BASEDIR processing before the PKG vars are setup. So, you can
+# end up with BASEDIR errors when you are just trying to run the "help"
+# sub-command of this script or pkgs subcommand to determine available
+# arguments etc.
 #
 # PKG_URL and PKG_SRC are concatenated to form full URL for wget call
 # PKG_MD5 is optional, if present it is checked against source package MD5
@@ -187,6 +200,7 @@ PKGS+=" SXCNG"
 #     will not be able to find where the unpacked source tree.
 #
 ###############################################################################
+function init_OPENSSL_vars() {
 OPENSSL=openssl
 OPENSSL_VER=1.0.1l
 OPENSSL_URL=http://www.openssl.org/source
@@ -197,6 +211,7 @@ OPENSSL_MSYS2_BUILDCMDS="# openssl build commands
 make"
 
 
+function init_BDB_vars() {
 BDB=db
 BDB_VER=4.8.30.NC
 BDB_URL=http://download.oracle.com/berkeley-db
@@ -210,8 +225,10 @@ cd build_unix
     --disable-shared \\
     --disable-replication
 make"
+}
 
 
+function init_BOOST_vars() {
 BOOST=boost
 BOOST_VER=1_55_0
 BOOST_URL=http://sourceforge.net/projects/boost/files/boost/1.55.0
@@ -236,8 +253,10 @@ BOOST_MSYS2_BUILDCMDS="# boost build commands
     threading=multi \\
     runtime-link=static \\
     stage"
+}
 
 
+function init_MINIUPNPC_vars() {
 MINIUPNPC=miniupnpc
 MINIUPNPC_VER=1.9
 MINIUPNPC_URL=http://miniupnp.free.fr/files
@@ -245,8 +264,10 @@ MINIUPNPC_SRC=${MINIUPNPC}-${MINIUPNPC_VER}.tar.gz
 MINIUPNPC_MD5=5ef3ba321e6df72d6519b728b292073e
 MINIUPNPC_MSYS2_BUILDCMDS="# miniupnpc build commands
 mingw32-make.exe  -f Makefile.mingw init upnpc-static"
+}
 
 
+function init_PROTOBUF_vars() {
 PROTOBUF=protobuf
 PROTOBUF_VER=2.5.0
 PROTOBUF_URL=http://protobuf.googlecode.com/files
@@ -255,8 +276,10 @@ PROTOBUF_MD5=2394c001bdb33f57efbcdd436bf12c83
 PROTOBUF_MSYS2_BUILDCMDS="# protobuf build commands
 ./configure --disable-shared
 make"
+}
 
 
+function init_LIBPNG_vars() {
 LIBPNG=libpng
 LIBPNG_VER=1.6.12
 LIBPNG_SRC=${LIBPNG}-${LIBPNG_VER}.tar.gz
@@ -266,8 +289,10 @@ LIBPNG_MSYS2_BUILDCMDS="# libpng build commands
 ./configure --disable-shared
 make
 cp ./.libs/libpng16.a ./.libs/libpng.a"
+}
 
 
+function init_QRENCODE_vars() {
 QRENCODE=qrencode
 QRENCODE_VER=3.4.4
 QRENCODE_SRC=${QRENCODE}-${QRENCODE_VER}.tar.gz
@@ -279,8 +304,10 @@ png_CFLAGS='-I../libpng-1.6.12' \\
   png_LIBS='-L../libpng-1.6.12/.libs'  \\
 ./configure --enable-static --disable-shared --without-tools
 make"
+}
 
 
+function init_QT_vars() {
 QT=qtbase
 QT_VER=5.3.1
 QT_SRC=qtbase-opensource-src-${QT_VER}.7z
@@ -317,8 +344,10 @@ mingw32-make confclean
                  -no-wmf-backend \\
                  -no-qml-debug
 mingw32-make"
+}
 
 
+function init_QTTOOLS_vars() {
 QTTOOLS=qttools
 QTTOOLS_VER=5.3.1
 QTTOOLS_SRC=qttools-opensource-src-${QT_VER}.7z
@@ -329,8 +358,10 @@ QTTOOLS_MSYS2_BUILDCMDS="# qttools build commands
 export PATH=\"$PATH:${BASEDIR}/${QT_UNPACKDIR}/bin\"
 qmake.exe qttools.pro
 mingw32-make"
+}
 
 
+function init_BTC_vars() {
 BTC=bitcoin
 BTC_VER=0.9.2.1
 BTC_SRC=v0.9.2.1.zip
@@ -372,8 +403,10 @@ make
 strip src/bitcoin-cli.exe
 strip src/bitcoind.exe
 strip src/qt/bitcoin-qt.exe"
+}
 
 
+function init_SXCNG_vars() {
 SXCNG=sexcoin-ng
 SXCNG_VER=master
 SXCNG_SRC=master.zip
@@ -414,6 +447,14 @@ make
 strip src/sexcoin-cli.exe
 strip src/sexcoind.exe
 strip src/qt/sexcoin-qt.exe"
+}
+
+
+#*****************************************************************************
+#
+# End Package Definition Functions
+#
+#*****************************************************************************
 
 
 function mdfive() {
@@ -735,6 +776,8 @@ function check_pkg_args() {
         for pkg in $PKGS ; do
             if [ "$arg"x == "$pkg"x ]; then
                 shift 1
+                #run init_<PKG>_vars function to load variables
+                eval init_${pkg}_vars
                 # jump out of forloop and back to top of while loop
                 continue 2
             fi
