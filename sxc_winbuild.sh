@@ -360,6 +360,48 @@ strip src/qt/sexcoin-qt.exe"
 # General Functions
 #
 #*****************************************************************************
+function check_shell() {
+    if [ "$MSYSTEM"x == "MINGW64"x ] ; then
+        return 0
+
+    elif [ -z "$MSYSTEM" ] ; then
+        echo "You do not appear to be in an msys2 shell."
+        echo "The \$MSYSTEM environment variable does not exist."
+        echo ""
+        echo "Please exit and relaunch a shell with the:"
+        echo "  C:\\msys64\\mingw64_shell.bat file"
+
+    elif [ "$MSYSTEM"x == "MSYS"x ] ; then
+        echo "\$MSYSTEM=\"${MSYSTEM}\""
+        echo "You appear to be in the incorrect (msys2) shell."
+        echo "Most likely you launched this shell from the:"
+        echo "  C:\\msys64\\msys2_shell.bat file"
+        echo ""
+        echo "Please exit and relaunch a shell with the:"
+        echo "  C:\\msys64\\mingw64_shell.bat file"
+
+    elif [ "$MSYSTEM"x == "MINGW32"x ] ; then
+        echo "\$MSYSTEM=\"${MSYSTEM}\""
+        echo "You appear to be in the incorrect (mingw32) shell."
+        echo "Most likely you launched this shell from the:"
+        echo "  C:\\msys64\\mingw32_shell.bat file"
+        echo ""
+        echo "Please exit and relaunch a shell with the:"
+        echo "  C:\\msys64\\mingw64_shell.bat file"
+    else
+        echo "\$MSYSTEM=\"${MSYSTEM}\""
+        echo "Unable to identify the type of shell you are in."
+        echo "Your \$MSYSTEM environment variable is set to a unrecognized value."
+        echo ""
+        echo "Please exit and relaunch a shell with the:"
+        echo "  C:\\msys64\\mingw64_shell.bat file"
+
+    fi
+
+    return 1
+}
+
+
 function use_custom_basedir() {
     # Check if user set CUSTOM_BASEDIR and if we can use it
     # Return 0 if we are using it, 1 otherwise
@@ -1004,12 +1046,15 @@ case $1 in
         ;;
 esac
 
+# Check the shell before toolchain
+# There's three "start a shell" .bat files in c:\msys64 but we need to be in
+# one started from mingw64_shell.bat
+# (We really only need the $MSYS=MINGW64 environment var it sets, I think)
+check_shell || exit 1
+
 # Check that toolchain is present and working before
 # handling remaining subcommands
-check_toolchain
-if [ "$?" -ne 0 ] ; then
-    exit 1
-fi
+check_toolchain || exit 1
 
 # Handle remaining subcommands
 case $1 in
