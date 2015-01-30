@@ -150,24 +150,6 @@ else
     TOOLCHAIN_OK=1
 fi
 
-# Dependency packages to build.
-# These are packages *generally* required by the buildprocess of *coin
-# Built in left to right order, consider dependencies when modifying.
-#
-# If you don't want a gui client, I assume you could remove QT and QTTOOLS to
-# save quite a bit of build time(untested). *coin configure scripts seem to
-# skip GUI build if they can't find Qt.
-DEPS="OPENSSL BDB BOOST MINIUPNPC PROTOBUF LIBPNG QRENCODE QT QTTOOLS"
-
-# Add DEPS to PKGS list
-PKGS="$DEPS"
-
-# Build sexcoin
-PKGS+=" SXCNG"
-
-# Build bitcoin
-#PKGS+=" BTC"
-
 
 ##############################################################################
 #
@@ -200,14 +182,23 @@ PKGS+=" SXCNG"
 #     will not be able to find where the unpacked source tree.
 #
 ###############################################################################
+
+#Master list of Packages
+MASTERPKGLIST="OPENSSL BDB BOOST MINIUPNPC PROTOBUF LIBPNG QRENCODE QT QTTOOLS BTC SXCNG"
+
 function init_OPENSSL_vars() {
 OPENSSL=openssl
 OPENSSL_VER=1.0.1l
 OPENSSL_URL=http://www.openssl.org/source
 OPENSSL_SRC=${OPENSSL}-${OPENSSL_VER}.tar.gz
 OPENSSL_MD5=cdb22925fc9bc97ccbf1e007661f2aa6
+OPENSSL_DEPS=""
 OPENSSL_MSYS2_BUILDCMDS="# openssl build commands
-./Configure no-zlib no-shared no-dso no-krb5 no-camellia no-capieng no-cast no-cms no-dtls1 no-gost no-gmp no-heartbeats no-idea no-jpake no-md2 no-mdc2 no-rc5 no-rdrand no-rfc3779 no-rsax no-sctp no-seed no-sha0 no-static_engine no-whirlpool no-rc2 no-rc4 no-ssl2 no-ssl3 mingw64
+./Configure no-zlib no-shared no-dso no-krb5 no-camellia no-capieng no-cast \\
+            no-cms no-dtls1 no-gost no-gmp no-heartbeats no-idea no-jpake \\
+            no-md2 no-mdc2 no-rc5 no-rdrand no-rfc3779 no-rsax no-sctp \\
+            no-seed no-sha0 no-static_engine no-whirlpool no-rc2 no-rc4 \\
+            no-ssl2 no-ssl3 mingw64
 make"
 }
 
@@ -217,6 +208,7 @@ BDB_VER=4.8.30.NC
 BDB_URL=http://download.oracle.com/berkeley-db
 BDB_SRC=${BDB}-${BDB_VER}.tar.gz
 BDB_MD5=a14a5486d6b4891d2434039a0ed4c5b7
+BDB_DEPS=""
 BDB_MSYS2_BUILDCMDS="# bdb 4.8.30.NC build commands
 cd build_unix
 ../dist/configure \\
@@ -224,7 +216,7 @@ cd build_unix
     --enable-cxx \\
     --disable-shared \\
     --disable-replication
-make"
+make -j$((NPROC*2))"
 }
 
 
@@ -234,6 +226,7 @@ BOOST_VER=1_55_0
 BOOST_URL=http://sourceforge.net/projects/boost/files/boost/1.55.0
 BOOST_SRC=${BOOST}_${BOOST_VER}.7z
 BOOST_MD5=4e5bbc15fc8c80df8be428f8a5b5a823
+BOOST_DEPS=""
 BOOST_UNPACKDIR="${BOOST}_${BOOST_VER}"
 GCC_VER_TOKEN=$(/mingw64/bin/gcc -v 2>&1 | \
                 awk '/gcc version/{print $3}' | \
@@ -241,7 +234,7 @@ GCC_VER_TOKEN=$(/mingw64/bin/gcc -v 2>&1 | \
 BOOST_SUFFIX=mgw${GCC_VER_TOKEN}-mt-s-${BOOST_VER%%_0}
 BOOST_MSYS2_BUILDCMDS="# boost build commands
 ./bootstrap.bat mingw
-./b2 \\
+./b2 -j$((NPROC*2)) \\
     --build-type=complete \\
     --with-chrono \\
     --with-filesystem \\
@@ -262,8 +255,9 @@ MINIUPNPC_VER=1.9
 MINIUPNPC_URL=http://miniupnp.free.fr/files
 MINIUPNPC_SRC=${MINIUPNPC}-${MINIUPNPC_VER}.tar.gz
 MINIUPNPC_MD5=5ef3ba321e6df72d6519b728b292073e
+MINIUPNPC_DEPS=""
 MINIUPNPC_MSYS2_BUILDCMDS="# miniupnpc build commands
-mingw32-make.exe  -f Makefile.mingw init upnpc-static"
+mingw32-make.exe -j$((NPROC*2)) -f Makefile.mingw init upnpc-static"
 }
 
 
@@ -273,6 +267,7 @@ PROTOBUF_VER=2.5.0
 PROTOBUF_URL=http://protobuf.googlecode.com/files
 PROTOBUF_SRC=${PROTOBUF}-${PROTOBUF_VER}.zip
 PROTOBUF_MD5=2394c001bdb33f57efbcdd436bf12c83
+PROTOBUF_DEPS=""
 PROTOBUF_MSYS2_BUILDCMDS="# protobuf build commands
 ./configure --disable-shared
 make"
@@ -282,12 +277,13 @@ make"
 function init_LIBPNG_vars() {
 LIBPNG=libpng
 LIBPNG_VER=1.6.12
+LIBPNG_URL=http://prdownloads.sourceforge.net/libpng
 LIBPNG_SRC=${LIBPNG}-${LIBPNG_VER}.tar.gz
 LIBPNG_MD5=297388a6746a65a2127ecdeb1c6e5c82
-LIBPNG_URL=http://prdownloads.sourceforge.net/libpng
+LIBPNG_DEPS=""
 LIBPNG_MSYS2_BUILDCMDS="# libpng build commands
 ./configure --disable-shared
-make
+make -j$((NPROC*2))
 cp ./.libs/libpng16.a ./.libs/libpng.a"
 }
 
@@ -295,30 +291,32 @@ cp ./.libs/libpng16.a ./.libs/libpng.a"
 function init_QRENCODE_vars() {
 QRENCODE=qrencode
 QRENCODE_VER=3.4.4
+QRENCODE_URL=http://fukuchi.org/works/qrencode
 QRENCODE_SRC=${QRENCODE}-${QRENCODE_VER}.tar.gz
 QRENCODE_MD5=be545f3ce36ea8fbb58612d72c4222de
-QRENCODE_URL=http://fukuchi.org/works/qrencode
+QRENCODE_DEPS="LIBPNG"
 QRENCODE_MSYS2_BUILDCMDS="# qrencode build commands
       LIBS='../libpng-1.6.12/.libs/libpng.a /mingw64/lib/libz.a' \\
 png_CFLAGS='-I../libpng-1.6.12' \\
   png_LIBS='-L../libpng-1.6.12/.libs'  \\
 ./configure --enable-static --disable-shared --without-tools
-make"
+make -j$((NPROC*2))"
 }
 
 
 function init_QT_vars() {
 QT=qtbase
 QT_VER=5.3.1
+QT_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.1/submodules
 QT_SRC=qtbase-opensource-src-${QT_VER}.7z
 QT_MD5=ed0b47dbb77d4aa13e65a8a25c6e8e04
-QT_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.1/submodules
+QT_DEPS="LIBPNG OPENSSL"
 QT_UNPACKDIR=qtbase-opensource-src-5.3.1
 QT_MSYS2_BUILDCMDS="# qtbase build commands
 mingw32-make confclean
-./configure.exe  -I ${BASEDIR}/libpng-1.6.12 \\
+./configure.exe  -I ${BASEDIR}/libpng-${LIBPNG_VER} \\
                  -I ${BASEDIR}/openssl-${OPENSSL_VER}/include \\
-                 -L ${BASEDIR}/libpng-1.6.12/.libs \\
+                 -L ${BASEDIR}/libpng-${LIBPNG_VER}/.libs \\
                  -L ${BASEDIR}/openssl-${OPENSSL_VER} \\
                  -openssl \\
                  -nomake examples \\
@@ -343,31 +341,32 @@ mingw32-make confclean
                  -no-audio-backend \\
                  -no-wmf-backend \\
                  -no-qml-debug
-mingw32-make"
+mingw32-make -j$((NPROC*2))"
 }
 
 
 function init_QTTOOLS_vars() {
 QTTOOLS=qttools
 QTTOOLS_VER=5.3.1
+QTTOOLS_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.1/submodules
 QTTOOLS_SRC=qttools-opensource-src-${QT_VER}.7z
 QTTOOLS_MD5=8cce6f38f3d59cad495aed0c0eab8cea
-QTTOOLS_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.1/submodules
+QTTOOLS_DEPS="QT"
 QTTOOLS_UNPACKDIR=qttools-opensource-src-5.3.1
 QTTOOLS_MSYS2_BUILDCMDS="# qttools build commands
 export PATH=\"$PATH:${BASEDIR}/${QT_UNPACKDIR}/bin\"
 qmake.exe qttools.pro
-mingw32-make"
+mingw32-make -j$((NPROC*2))"
 }
 
 
 function init_BTC_vars() {
 BTC=bitcoin
 BTC_VER=0.9.2.1
+BTC_URL=https://github.com/bitcoin/bitcoin/archive
 BTC_SRC=v0.9.2.1.zip
 BTC_MD5=
-BTC_URL=https://github.com/bitcoin/bitcoin/archive
-BOOST_SUFFIX=mgw49-mt-s-${BOOST_VER%%_0}
+BTC_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS"
 BTC_MSYS2_BUILDCMDS="# bitcoin build commands
 ./autogen.sh
 CPPFLAGS=\" \\
@@ -382,7 +381,7 @@ LDFLAGS=\" \\
     -L${BASEDIR}/boost_${BOOST_VER}/stage/lib \\
     -L${BASEDIR}/db-${BDB_VER}/build_unix \\
     -L${BASEDIR}/openssl-${OPENSSL_VER} \\
-    -L${BASEDIR}/miniupnpc \\
+    -L${BASEDIR}/miniupnpc-${MINIUPNPC_VER} \\
     -L${BASEDIR}/protobuf-${PROTOBUF_VER}/src/.libs \\
     -L${BASEDIR}/libpng-${LIBPNG_VER}/.libs \\
     -L${BASEDIR}/qrencode-${QRENCODE_VER}/.libs\" \\
@@ -399,7 +398,7 @@ LDFLAGS=\" \\
     --with-boost-thread=$BOOST_SUFFIX \\
     --with-boost-chrono=$BOOST_SUFFIX \\
     --with-protoc-bindir=${BASEDIR}/protobuf-${PROTOBUF_VER}/src
-make
+make -j$((NPROC*2))
 strip src/bitcoin-cli.exe
 strip src/bitcoind.exe
 strip src/qt/bitcoin-qt.exe"
@@ -409,9 +408,10 @@ strip src/qt/bitcoin-qt.exe"
 function init_SXCNG_vars() {
 SXCNG=sexcoin-ng
 SXCNG_VER=master
+SXCNG_URL=https://github.com/sxcer/sexcoin-ng/archive
 SXCNG_SRC=master.zip
 SXCNG_MD5=
-SXCNG_URL=https://github.com/sxcer/sexcoin-ng/archive
+SXCNG_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS"
 SXCNG_MSYS2_BUILDCMDS="# sexcoin-ng build commands
 ./autogen.sh
 CPPFLAGS=\" \\
@@ -426,7 +426,7 @@ LDFLAGS=\" \\
     -L${BASEDIR}/boost_${BOOST_VER}/stage/lib \\
     -L${BASEDIR}/db-${BDB_VER}/build_unix \\
     -L${BASEDIR}/openssl-${OPENSSL_VER} \\
-    -L${BASEDIR}/miniupnpc \\
+    -L${BASEDIR}/miniupnpc-${MINIUPNPC_VER} \\
     -L${BASEDIR}/protobuf-${PROTOBUF_VER}/src/.libs \\
     -L${BASEDIR}/libpng-${LIBPNG_VER}/.libs \\
     -L${BASEDIR}/qrencode-${QRENCODE_VER}/.libs\" \\
@@ -443,7 +443,7 @@ LDFLAGS=\" \\
     --with-boost-thread=$BOOST_SUFFIX \\
     --with-boost-chrono=$BOOST_SUFFIX \\
     --with-protoc-bindir=${BASEDIR}/protobuf-${PROTOBUF_VER}/src
-make
+make -j$((NPROC*2))
 strip src/sexcoin-cli.exe
 strip src/sexcoind.exe
 strip src/qt/sexcoin-qt.exe"
@@ -643,14 +643,9 @@ function download() {
 
 function clean() {
     local pkg=""
-    local pkgs=""
-
-    # If arg1 present, consider all args a pkg
-    # otherwise, do all packages
-    [ "$#" -gt 0 ] && pkgs="$*" || pkgs="$PKGS"
 
     cd "${BASEDIR}"
-    for pkg in $pkgs ; do
+    for pkg in $PKGS ; do
         eval local name=\${$pkg}
         eval local src=\${${pkg}_SRC}
         eval local unpackdir=\${${pkg}_UNPACKDIR:=${name}-\${${pkg}_VER}}
@@ -662,13 +657,8 @@ function clean() {
 
 function buildcmds() {
     local pkg=""
-    local pkgs=""
 
-    # If arg1 present, consider all args a pkg
-    # otherwise, do all packages
-    [ "$#" -gt 0 ] && pkgs="$*" || pkgs=$PKGS
-
-    for pkg in $pkgs ; do
+    for pkg in $* ; do
         eval local name=\${${pkg}}
         eval local buildcmds=\${${pkg}_MSYS2_BUILDCMDS}
         local filename=${BASEDIR}/${name}.buildcmds
@@ -680,13 +670,8 @@ function buildcmds() {
 
 function download_pkgs() {
     local pkg=""
-    local pkgs=""
 
-    # If arg1 present, consider all args a pkg
-    # otherwise, do all packages
-    [ "$#" -gt 0 ] && pkgs="$*" || pkgs=$PKGS
-
-    for pkg in $pkgs ; do
+    for pkg in $PKGS ; do
         eval local name=\${${pkg}}
         eval local url=\${${pkg}_URL}/\${${pkg}_SRC}
         eval local src=\${${pkg}_SRC}
@@ -697,13 +682,8 @@ function download_pkgs() {
 
 function unpack_pkgs() {
     local pkg=""
-    local pkgs=""
 
-    # If arg1 present, consider all args a pkg
-    # otherwise, do all packages
-    [ "$#" -gt 0 ] && pkgs="$*" || pkgs=$PKGS
-
-    for pkg in $pkgs ; do
+    for pkg in $PKGS ; do
         eval local name=\${${pkg}}
         eval local url=\${${pkg}_URL}/\${${pkg}_SRC}
         eval local src=\${${pkg}_SRC}
@@ -719,13 +699,8 @@ function unpack_pkgs() {
 
 function build_pkgs() {
     local pkg=""
-    local pkgs=""
 
-    # If arg1 present, consider all args a pkg
-    # otherwise, do all packages
-    [ "$#" -gt 0 ] && pkgs="$*" || pkgs=$PKGS
-
-    for pkg in $pkgs ; do
+    for pkg in $PKGS ; do
         eval local name=\${${pkg}}
         eval local url=\${${pkg}_URL}/\${${pkg}_SRC}
         eval local src=\${${pkg}_SRC}
@@ -764,52 +739,201 @@ function build_pkgs() {
     done
 }
 
+function status_pkgs() {
+    local pkg=''
+    for pkg in $* ; do
+        eval local name=\${${pkg}}
+        eval local url=\${${pkg}_URL}/\${${pkg}_SRC}
+        eval local src=\${${pkg}_SRC}
+        eval local md5=\${${pkg}_MD5}
+        eval local unpackdir=\${${pkg}_UNPACKDIR:=${name}-\${${pkg}_VER}}
+        echo -e "\n\n*************************"
+        printf %25s\\n $name
+        echo -e "*************************"
+        echo -n "   URL Check: "
+        wget -q --spider $url
+        if [ $? -eq 0 ] ; then
+             echo "Success"
+        else
+             echo "Failed"
+        fi
+
+        echo -n "      Cached: "
+        if [ -f "$CACHEDIR/$src" ] ; then
+             echo -n "Yes, size="
+             du -sh $CACHEDIR/$src | awk '{print $1}'
+             echo -n "     MD5 Sum: "
+             local temp=$(md5sum "$CACHEDIR/$src")
+             local  sum=${temp:0:32}
+             if [ "${sum}"x == "${md5}"x ] ; then
+                 echo "Good"
+             else
+                 echo "Bad"
+             fi
+        else
+             echo "No"
+        fi
+
+        echo -n "  Unpack Dir: "
+        if [ -d "$BASEDIR/$unpackdir" ] ; then
+             echo -n "Present, size="
+             size=$(du -sh $BASEDIR/$unpackdir | awk '{print $1}')
+             filecount=$(find $BASEDIR/$unpackdir -type f | wc -l)
+             dircount=$(find $BASEDIR/$unpackdir -type d | wc -l)
+             echo "$size Dirs=$dircount Files=$filecount"
+        else
+            echo "Not Present"
+        fi
+        
+        echo -n "Marked Built: "
+        if [ -f "$BASEDIR/$unpackdir/.built" ] ; then
+             echo "Yes"
+        else
+             echo "No"
+        fi
+
+    done
+}
 function init_pkg_args() {
-    # Make sure any package args are for valid packages
-    # $2 through $n should be list of packages
+    # $1 through $n passed direclty to this script should be list of packages
+    #
+    # This script will populate $PKGS with a dedup'd list of packages to build
+    # which includes all valid packages passed as args plus their dependencies.
+    #
+    # It will also call all init_<PKG>_vars() functions so basically, after
+    # this script runs, calling build_pkgs() or clean() will be able to 
+    # operate on the list of packages in PKGS and make use of all <PKG>_xxxx
+    # variables
+    #
+    # Return TRUE if one or more valid pkg arguments are passed and no errors
+    # are encountered.
+    # Returns FALSE otherwise
+    #
 
     local args=''
     local arg=''
-    local pkg=''
+    DEPS=''
+    PKGS=''
 
-    # If no args are passed, add all packages to the list
+    # If no args are passed, error out
     if [ "$#" -eq 0 ] ; then
-       args="$PKGS"
-    else
-        args="$*"
+        echo "No package(s) specified."
+        echo "Run \"$0 pkgs\" to see a list of packages"
+        return 1
     fi
 
+    args="$*"
+
     for arg in $args ; do
-        # iterate master pkg list
-        for pkg in $PKGS ; do
-            if [ "$arg"x == "$pkg"x ]; then
-                eval init_${arg}_vars
-                # jump out 2 forloops
-                continue 2
-            fi
-        done
-        echo "$arg is not a valid PKG, run $0 pkgs to see valid PKGs"
-        return 1
+        if valid_pkg "$arg" ; then
+            eval init_${arg}_vars
+            DEPS=''
+            get_deps "$arg" || return 1
+            append_to_PKGS "$DEPS" "$arg"
+            DEPS=''
+        else
+            echo "$arg is not a valid PKG, run $0 pkgs to see valid PKGs"
+            return 1
+        fi
     done
+
+    dedup_PKGS
     return 0
 }
 
+function dedup_PKGS() {
+    local pkg=''
+    local newpkg=''
+    local newpkgs=''
+
+    for pkg in $PKGS ; do
+        for newpkg in $newpkgs ; do
+            if [ "$pkg"x == "$newpkg"x ] ; then
+                continue 2
+            fi
+        done
+
+        if [ "$newpkgs"x == ""x ] ; then
+            newpkgs="$pkg"
+        else
+
+            newpkgs+=" $pkg"
+        fi
+    done
+
+    PKGS="$newpkgs"
+}
+
+function append_to_PKGS() {
+    while [ "$#" -gt 0 ] ; do
+        if [ "$PKGS"x == ""x ] ; then
+            PKGS="$1"
+        else
+            PKGS+=" $1"
+        fi
+        shift 1
+    done
+}
+
+function append_to_DEPS() {
+    while [ "$#" -gt 0 ] ; do
+        if [ "$DEPS"x == ""x ] ; then
+            DEPS="$1"
+        else
+            DEPS+=" $1"
+        fi
+        shift 1
+    done
+}
+
+function valid_pkg() {
+    local pkg=''
+    for pkg in $MASTERPKGLIST ; do
+        [ "$1"x == "$pkg"x ] && return 0
+    done
+    return 1
+}
+
+function get_deps() {
+    local  pkgdep=''
+    local pkgdeps=''
+
+    eval pkgdeps=\"\$$1_DEPS\"
+
+    if [ -n "$pkgdeps" ] ; then
+        #iterate and recurse on pkgdeps 
+        for pkgdep in $pkgdeps ; do
+           if valid_pkg $pkgdep ; then
+                eval init_${pkgdep}_vars
+                get_deps $pkgdep;
+           else
+               return 0
+           fi
+        done
+    else
+        append_to_DEPS "$1"
+        return 0
+    fi
+
+}
+
 function usage() {
-    echo "  Usage: $0 [CMD] [PKG]..."
+    echo "  Usage: $0 [SUBCMD] [PKG]..."
     echo ""
-    echo "  CMD is one of:"
-    echo "         clean  Removes pkg files/dirs for all packages or [PKG]..."
+    echo "  SUBCMD is one of:"
+    echo "         clean  Removes pkg files/dirs for [PKG]..."
+    echo "      cleanall  Removes pkg files/dirs for all packages"
     echo "          pkgs  Lists all valid PKG names this script understands"
     echo "      download  Downloads source for all packages or [PKG}..."
     echo "        unpack  Unpacks(downloads if necessary) all packages or [PKG]..."
-    echo "     buildcmds  Write build commands for all packages to pkgname.buildcmds"
-    echo "                or [PKG]..."
+    echo "     buildcmds  Write build cmds for [PKG]... to PKGNAME.buildcmds"
+    echo "  buildcmdsall  Write build cmds for all packages to PKGNAME.buildcmds"
     echo "         build  Builds (downloads and unpacks if necessary) all packages or"
     echo "                [PKG]..."
+    echo "          deps  Lists dependent packages for [PKG]... args on cmd line"
     echo "          dirs  Print BASEDIR and CACHEDIR being used"
     echo "          help  This help message"
     echo ""
-    echo "If no PKG arguments are present, all known packages assumed as targets"
 }
 
 cd "$BASEDIR"
@@ -819,7 +943,11 @@ if [ "$#" -gt 0 ] ; then
     case $1 in
         clean)
             shift 1
-            init_pkg_args $* && clean $*
+            init_pkg_args $* && clean
+            exit
+            ;;
+        cleanall)
+            init_pkg_args $MASTERPKGLIST && clean
             exit
             ;;
         buildcmds)
@@ -827,8 +955,12 @@ if [ "$#" -gt 0 ] ; then
             init_pkg_args $* && buildcmds $*
             exit
             ;;
+        buildcmdsall)
+            init_pkg_args $MASTERPKGLIST && buildcmds $MASTERPKGLIST
+            exit
+            ;;
         pkgs)
-            echo -e "Aware of the following packages:\n$PKGS"
+            echo -e "Aware of the following packages:\n$MASTERPKGLIST"
             exit
             ;;
         toolchain)
@@ -841,22 +973,46 @@ if [ "$#" -gt 0 ] ; then
             ;;
         download)
             shift 1
-            init_pkg_args $* && download_pkgs $*
+            init_pkg_args $* && download_pkgs
+            exit
+            ;;
+        downloadall)
+            init_pkg_args $MASTERPKGLIST && download_pkgs
             exit
             ;;
         unpack)
             shift 1
-            init_pkg_args $* && unpack_pkgs $*
+            init_pkg_args $* && unpack_pkgs
+            exit
+            ;;
+        unpackall)
+            init_pkg_args $MASTERPKGLIST && unpack_pkgs
             exit
             ;;
         build)
             shift 1
-            init_pkg_args $* && build_pkgs $*
+            init_pkg_args $* && build_pkgs
+            exit
+            ;;
+        buildall)
+            init_pkg_args $MASTERPKGLIST && build_pkgs
+            exit
+            ;;
+        deps)
+            shift 1
+            init_pkg_args $* && echo "$PKGS"
             exit
             ;;
         dirs)
             echo " BASEDIR=${BASEDIR}"
             echo "CACHEDIR=${CACHEDIR}"
+            ;;
+        status)
+            shift 1
+            init_pkg_args $* && status_pkgs $*
+            ;;
+        statusall)
+            init_pkg_args $MASTERPKGLIST && status_pkgs $MASTERPKGLIST
             ;;
         help)
             usage
