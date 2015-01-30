@@ -63,7 +63,6 @@ You are probably most interested in:
 
     sh sxc_winbuild.sh build BTC
 
-
 It will take a while to download all packages and build (including
 building Qt5 from source) so be prepared to wait.
 
@@ -90,7 +89,6 @@ You can see what directory the script will use with:
 
 An example of the default build directory selection:
 
-
     sxcer@gcore3 MINGW64 ~/src/sxc_winbuild
     $ sh sxc_winbuild.sh dirs
     Using default directory: /home/sxcer/src/sxc_winbuild/src
@@ -99,7 +97,6 @@ An example of the default build directory selection:
 
     sxcer@gcore3 MINGW64 ~/src/sxc_winbuild
     $
-
 
 
 Other
