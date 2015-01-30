@@ -929,16 +929,19 @@ function usage() {
     echo "  Usage: $0 [SUBCMD] [PKG]..."
     echo ""
     echo "  SUBCMD is one of:"
-    echo "         clean  Removes pkg files/dirs for [PKG]..."
-    echo "      cleanall  Removes pkg files/dirs for all packages"
     echo "          pkgs  Lists all valid PKG names this script understands"
-    echo "      download  Downloads source for all packages or [PKG}..."
-    echo "        unpack  Unpacks(downloads if necessary) all packages or [PKG]..."
+    echo "         build  Build (download/unpack if needed) [PKG]..."
+    echo "      buildall  Build (download/unpack if needed) all packages"
+    echo "         clean  Remove package files/dirs for [PKG]..."
+    echo "      cleanall  Remove package files/dirs for all packages"
+    echo "      download  Download source for [PKG}..."
+    echo "   downloadall  Download source for all packages"
+    echo "        unpack  Unpack(download if needed) [PKG]..."
+    echo "     unpackall  Unpack(download if needed) all packages"
     echo "     buildcmds  Write build cmds for [PKG]... to PKGNAME.buildcmds"
     echo "  buildcmdsall  Write build cmds for all packages to PKGNAME.buildcmds"
-    echo "         build  Builds (downloads and unpacks if necessary) all packages or"
-    echo "                [PKG]..."
-    echo "          deps  Lists dependent packages for [PKG]... args on cmd line"
+    echo "          pkgs  List all valid PKG names this script understands"
+    echo "          deps  List dependency packages for [PKG]... "
     echo "          dirs  Print BASEDIR and CACHEDIR being used"
     echo "          help  This help message"
     echo ""
@@ -956,11 +959,6 @@ function usage() {
 SUBCOMMANDS="clean cleanall buildcmds buildcmdsall pkgs download downloadall \ 
              unpack unpackall build buildall deps dirs status statusall help"
 
-# Directory used to store a copy of downloaded source packages. They are
-# not deleted during a "clean up" run of this script.
-CACHEDIR=${BASEDIR}/.download_cache
-[ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
-
 # Make this available for use for in buildcmds with make and mingw32-make
 # -j option. (can break the make, so I removed -j's from some buildcmds)
 NPROC=$(/usr/bin/nproc)
@@ -971,6 +969,11 @@ MSYS2_REQUIRED_PKGS="git wget diffutils p7zip unzip automake-wrapper autoconf \
                      mingw-w64-x86_64-make"
 
 set_basedir || cd "$BASEDIR" || exit 1
+
+# Directory used to store a copy of downloaded source packages. They are
+# not deleted during a "clean up" run of this script.
+CACHEDIR=${BASEDIR}/.download_cache
+[ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
 
 # Handle no subcommand and invalid subcommand
 if [ "$#" -lt 1 ] ; then
