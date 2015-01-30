@@ -433,7 +433,7 @@ function check_toolchain() {
     else
         echo "All Installed"
     fi
-    echo -n "      Checking path to gcc..."
+    echo -n "Checking path to gcc..."
     gcc -v >/dev/null 2>&1
     if  [ $? -ne 0 ] ; then
        echo "gcc not found, path contains:"
