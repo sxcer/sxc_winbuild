@@ -125,30 +125,31 @@ MSYS2_REQUIRED_PKGS="git wget diffutils p7zip unzip automake-wrapper autoconf \
                      mingw-w64-x86_64-make"
 
 function check_toolchain() {
+    echo -n "Checking for missing tools..."
     missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | \
               awk '/package .* was not found/{print $3}' | sed "s/'//g" )
     if [ -n "$missing" ] ; then
         echo "Installing $missing ..."
-        pacman -S $missing && echo "done." || exit 1
+        pacman -S $missing && echo "done." || return 1
+    else
+        echo "All Installed"
     fi
 
+    echo -n "      Checking path to gcc..."
     gcc -v >/dev/null 2>&1
     if  [ $? -ne 0 ] ; then
        echo "gcc not found, path contains:"
-       echo "$PATH"
-       echo "/mingw64/bin or /mingw32/bin should be first."
-       echo "Check for conflicting .profile or .bashrc in ~/"
-       exit 1
+       echo "     $PATH"
+       echo "     /mingw64/bin or /mingw32/bin should be first."
+       echo "     Check for conflicting .profile or .bashrc in ~/"
+       return 1
+    else
+       echo "OK"
     fi
 
+    return 0
+
 }
-# need to check toolchain early because gcc version is retrieved during
-# setting of BOOST_SUFFIX var.
-if check_toolchain ; then
-    TOOLCHAIN_OK=0
-else
-    TOOLCHAIN_OK=1
-fi
 
 
 ##############################################################################
@@ -938,94 +939,108 @@ function usage() {
 
 cd "$BASEDIR"
 
-# If any args passed...
-if [ "$#" -gt 0 ] ; then
-    case $1 in
-        clean)
-            shift 1
-            init_pkg_args $* && clean
-            exit
-            ;;
-        cleanall)
-            init_pkg_args $MASTERPKGLIST && clean
-            exit
-            ;;
-        buildcmds)
-            shift 1
-            init_pkg_args $* && buildcmds $*
-            exit
-            ;;
-        buildcmdsall)
-            init_pkg_args $MASTERPKGLIST && buildcmds $MASTERPKGLIST
-            exit
-            ;;
-        pkgs)
-            echo -e "Aware of the following packages:\n$MASTERPKGLIST"
-            exit
-            ;;
-        toolchain)
-            if [ "$TOOLCHAIN_OK" -eq 0 ] ; then
-                echo "Toolchain/tools OK"
-            else
-                echo "Toolchain/tools error"
-                exit
-            fi
-            ;;
-        download)
-            shift 1
-            init_pkg_args $* && download_pkgs
-            exit
-            ;;
-        downloadall)
-            init_pkg_args $MASTERPKGLIST && download_pkgs
-            exit
-            ;;
-        unpack)
-            shift 1
-            init_pkg_args $* && unpack_pkgs
-            exit
-            ;;
-        unpackall)
-            init_pkg_args $MASTERPKGLIST && unpack_pkgs
-            exit
-            ;;
-        build)
-            shift 1
-            init_pkg_args $* && build_pkgs
-            exit
-            ;;
-        buildall)
-            init_pkg_args $MASTERPKGLIST && build_pkgs
-            exit
-            ;;
-        deps)
-            shift 1
-            init_pkg_args $* && echo "$PKGS"
-            exit
-            ;;
-        dirs)
-            echo " BASEDIR=${BASEDIR}"
-            echo "CACHEDIR=${CACHEDIR}"
-            ;;
-        status)
-            shift 1
-            init_pkg_args $* && status_pkgs $*
-            ;;
-        statusall)
-            init_pkg_args $MASTERPKGLIST && status_pkgs $MASTERPKGLIST
-            ;;
-        help)
-            usage
-	    exit 0
-            ;;
-        *)
-            echo -e "Unknown command/option given\n"
-            usage
-	    exit 1
-	    ;;
-    esac
-else
-    echo -e "No command given\n"
+SUBCOMMANDS="clean cleanall buildcmds buildcmdsall pkgs download downloadall \
+             unpack unpackall build buildall deps dirs status statusall help"
+
+
+# Handle no subcommand and invalid subcommand
+if [ "$#" -lt 1 ] ; then
+    echo -e "No subcommand given\n"
     usage
     exit 1
 fi
+if [ "${SUBCOMMANDS/$1}" == "$SUBCOMMANDS" ] ; then
+    echo -e "Invalid subcommand\n"
+    usage
+    exit 1
+fi
+
+# Handle subcommands that don't require toolchain check
+case $1 in
+    help)
+        usage
+        exit 0
+        ;;
+    dirs)
+        echo " BASEDIR=${BASEDIR}"
+        echo "CACHEDIR=${CACHEDIR}"
+        exit 0
+        ;;
+    pkgs)
+        echo -e "Aware of the following packages:\n$MASTERPKGLIST"
+        exit 0
+        ;;
+esac
+
+# Check that toolchain is present and working before
+# handling remaining subcommands
+check_toolchain
+if [ "$?" -ne 0 ] ; then
+    exit 1
+fi
+
+# Handle remaining subcommands
+case $1 in
+    clean)
+        shift 1
+        init_pkg_args $* && clean
+        exit
+        ;;
+    cleanall)
+        init_pkg_args $MASTERPKGLIST && clean
+        exit
+        ;;
+    buildcmds)
+        shift 1
+        init_pkg_args $* && buildcmds $*
+        exit
+        ;;
+    buildcmdsall)
+        init_pkg_args $MASTERPKGLIST && buildcmds $MASTERPKGLIST
+        exit
+        ;;
+    download)
+        shift 1
+        init_pkg_args $* && download_pkgs
+        exit
+        ;;
+    downloadall)
+        init_pkg_args $MASTERPKGLIST && download_pkgs
+        exit
+        ;;
+    unpack)
+        shift 1
+        init_pkg_args $* && unpack_pkgs
+        exit
+        ;;
+    unpackall)
+        init_pkg_args $MASTERPKGLIST && unpack_pkgs
+        exit
+        ;;
+    build)
+        shift 1
+        init_pkg_args $* && build_pkgs
+        exit
+        ;;
+    buildall)
+        init_pkg_args $MASTERPKGLIST && build_pkgs
+        exit
+        ;;
+    deps)
+        shift 1
+        init_pkg_args $* && echo "$PKGS"
+        exit
+        ;;
+    status)
+        shift 1
+        init_pkg_args $* && status_pkgs $*
+        ;;
+    statusall)
+        init_pkg_args $MASTERPKGLIST && status_pkgs $MASTERPKGLIST
+        ;;
+    *)
+        echo -e "Unknown command/option given\n"
+        usage
+    exit 1
+    ;;
+esac
