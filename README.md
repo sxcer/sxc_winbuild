@@ -84,6 +84,23 @@ By default all building will be done in directory named "src" in the directory
 you run the script from. If you would like to alter that, edit $CUSTOM_BASEDIR
 near the top of the script.
 
+You can see what directory the script will use with:
+
+    sh sxc_winbuild.sh dirs
+
+An example of the default build directory selection:
+
+
+    sxcer@gcore3 MINGW64 ~/src/sxc_winbuild
+    $ sh sxc_winbuild.sh dirs
+    Using default directory: /home/sxcer/src/sxc_winbuild/src
+     BASEDIR=/home/sxcer/src/sxc_winbuild/src
+    CACHEDIR=/home/sxcer/src/sxc_winbuild/src/.download_cache
+
+    sxcer@gcore3 MINGW64 ~/src/sxc_winbuild
+    $
+
+
 
 Other
 ------------
