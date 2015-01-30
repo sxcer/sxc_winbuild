@@ -1,27 +1,36 @@
 #/bin/sh
-# sxc_winbuild.sh v0.5 - Automated building of sexcoin-qt (and dependencies)
+# sxc_winbuild.sh v0.7 - Automated building of sexcoin-qt (and dependencies)
 #                        on Windows using msys2
-# https://github.com/sxcer/sxc_winbuild                     sxcerr@gmail.com
+# Latest here: https://github.com/sxcer/sxc_winbuild          sxcerr@gmail.com
 #
-# See README here:
-# https://github.com/sxcer/sxc_winbuild/blob/master/README.md
-#
-# Run "sxc_winbuild.sh" to see options
+# This script must be run from a msys2 MINGW64 shell
 #
 #                  *msys2 Is Required (not msys)*
+
 # Installation of msys2 x86_64 to the default c:\msys64 directory
 # is described here:
 #          http://msys2.github.io/
 #
-# Double-click c:\mingw64\mingw64_shell.bat and type:
+# After installation, double-click c:\mingw64\mingw64_shell.bat and type:
 #     pacman -Sy
 #     pacman -S wget
 #     wget https://github.com/sxcer/sxc_winbuild/raw/master/sxc_winbuild.sh
-#     sh sxc_winbuild.sh
+#
+# to easily get this script into the shell.
+#
+# Running:
+#     sh sxc_winbuild.sh pkgs 
+#
+# will show a list of packages that can be built. You're probably most
+# interested in SXCNG or BTC (which will include all the deps)
+#
+#     sh sxc_winbuild.sh build SXCNG
 #
 # It will take a long while to download all packages and build (including
 # building Qt5 from source) so be prepared to wait.
-
+#
+#
+# Build Directory
 # By default this script will use "./src". Assuming you just installed msys2
 # and ran the shell shortcut this is probably /home/<username>/src.
 #
