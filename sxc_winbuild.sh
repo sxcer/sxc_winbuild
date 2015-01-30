@@ -968,7 +968,7 @@ MSYS2_REQUIRED_PKGS="git wget diffutils p7zip unzip automake-wrapper autoconf \
                      tar libtool mingw-w64-x86_64-gcc make pkg-config \
                      mingw-w64-x86_64-make"
 
-set_basedir || cd "$BASEDIR" || exit 1
+set_basedir && cd "$BASEDIR" || exit 1
 
 # Directory used to store a copy of downloaded source packages. They are
 # not deleted during a "clean up" run of this script.
