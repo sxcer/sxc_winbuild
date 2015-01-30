@@ -3,7 +3,8 @@ sxc_winbuild
 
 Description
 ------------
-Automated building of sexcoin-qt (and dependencies) on Windows using msys2
+Automated building of Sexcoin or Bitcoin (and dependencies) on Windows
+using msys2.
 
 This script is basically an automation of the awesome Windows build
 instructions that user nitrogenetics posted and maintains at
@@ -18,9 +19,8 @@ instructions.
 It provides a few options to allow for repeating or focusing on
 specific parts of the build process.
 
-Building of bitcoin-qt is also supported. With minimal extra work you can add
-a new "Package Definition" for another altcoin. Coins at v0.9 or higher
-will be easiest to adapt I think.
+With minimal extra work you can add a new "Package Definition" for another
+altcoin. Coins at v0.9 or higher will be easiest to adapt.
 
 
 Requirements
