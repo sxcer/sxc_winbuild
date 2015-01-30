@@ -45,128 +45,27 @@ CUSTOM_BASEDIR=
 
 
 ##########################################################################
-# Below here, you should know a little about what you are doing to edit.
+# Below here, you should know a little about what you are doing to edit. #
 ##########################################################################
-
-
-function use_custom_basedir() {
-    # Check if user set CUSTOM_BASEDIR and if we can use it
-    # Return 0 if we are using it, 1 otherwise
-    if [ "$CUSTOM_BASEDIR"x == "x" ] ; then
-        return 1
-    fi
-
-    # Expand any ~ now or it will cause problems later
-    eval CUSTOM_BASEDIR="$CUSTOM_BASEDIR"
-
-    # check for whitespace in path
-    if [ "${CUSTOM_BASEDIR/[:space:]}"x != "${CUSTOM_BASEDIR}"x ] ; then
-        echo "Unable to use your CUSTOM_BASEDIR:"
-        echo "   $CUSTOM_BASEDIR"
-        echo "because it has a space in it which will cause build problems."
-        return 1
-    fi
-
-    # go ahead and use it
-    BASEDIR="$CUSTOM_BASEDIR"
-    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
-    echo "Using custom directory $BASEDIR"
-}
-
-
-function use_default_basedir() {
-    # Use default basedir if it's ok
-    local d="$(pwd)/src"
-
-    # check for whitespace in path
-    if [ "${d/([:space:])}"x != "${d}"x ] ; then
-        echo "Unable to use your current working directory as default base dir:"
-        echo "   $d"
-        echo "It has a space which will cause problems with the build."
-        return 1
-    fi
-    #no space, let it be used
-    BASEDIR="$d"
-    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
-    echo "Using default directory: $BASEDIR"
-}
-
-
-function use_failsafe_basedir() {
-    # using something that should be ok no matter what
-    BASEDIR=/tmp/src
-    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
-    echo "Using failsafe directory: $BASEDIR"
-}
-
-# Use user specified dir, default dir or failsafe dir
-# as BASEDIR
-if ! use_custom_basedir ; then
-    if ! use_default_basedir ; then
-        if ! use_failsafe_basedir ; then
-            echo "Can't get usable base directory"
-            exit 1
-        fi
-    fi
-fi
-
-# Directory used to store a copy of downloaded source packages. They are
-# not deleted during a "clean up" run of this script.
-CACHEDIR=${BASEDIR}/.download_cache
-[ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
-
-# Make this available for use for in buildcmds with make and mingw32-make
-# -j option. (tends to break the make, so I removed -j's from some buildcmds)
-NPROC=$(/usr/bin/nproc)
-
-# Toolchain/tools packages and check/install function
-MSYS2_REQUIRED_PKGS="git wget diffutils p7zip unzip automake-wrapper autoconf \
-                     tar libtool mingw-w64-x86_64-gcc make pkg-config \
-                     mingw-w64-x86_64-make"
-
-function check_toolchain() {
-    echo -n "Checking for missing tools..."
-    missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | \
-              awk '/package .* was not found/{print $3}' | sed "s/'//g" )
-    if [ -n "$missing" ] ; then
-        echo "Installing $missing ..."
-        pacman -S $missing && echo "done." || return 1
-    else
-        echo "All Installed"
-    fi
-
-    echo -n "      Checking path to gcc..."
-    gcc -v >/dev/null 2>&1
-    if  [ $? -ne 0 ] ; then
-       echo "gcc not found, path contains:"
-       echo "     $PATH"
-       echo "     /mingw64/bin or /mingw32/bin should be first."
-       echo "     Check for conflicting .profile or .bashrc in ~/"
-       return 1
-    else
-       echo "OK"
-    fi
-
-    return 0
-
-}
 
 
 ##############################################################################
 #
-# Package Definitions
+# Package Definition Functions
 #
 # Definitions for each package are wrapped in a single function per pkg
 #    init_<PKG>_vars()
 #
-# This way they can be invoked later in the script than there physical ordering
-# by line number would indicate.
+# All they really do is set variables with values that define a package, name,
+# URL for download, MD5 of tarball, build commands, etc.
 #
-# The build command vars generally require BASEDIR to be available which means
-# you must do BASEDIR processing before the PKG vars are setup. So, you can
-# end up with BASEDIR errors when you are just trying to run the "help"
-# sub-command of this script or pkgs subcommand to determine available
-# arguments etc.
+# Defining them as functions allows them to be invoked later in the script than
+# the physical ordering (by line number) would indicate.
+#
+# BASEDIR, toolchain, and even order of defining the package variables affect
+# some package variables, so this also let's us control when and in what order
+# package variables are set.
+#
 #
 # PKG_URL and PKG_SRC are concatenated to form full URL for wget call
 # PKG_MD5 is optional, if present it is checked against source package MD5
@@ -185,8 +84,10 @@ function check_toolchain() {
 ###############################################################################
 
 #Master list of Packages
-MASTERPKGLIST="OPENSSL BDB BOOST MINIUPNPC PROTOBUF LIBPNG QRENCODE QT QTTOOLS BTC SXCNG"
+MASTERPKGLIST="OPENSSL BDB BOOST MINIUPNPC PROTOBUF LIBPNG QRENCODE QT QTTOOLS\
+ BTC SXCNG"
 
+ 
 function init_OPENSSL_vars() {
 OPENSSL=openssl
 OPENSSL_VER=1.0.1l
@@ -449,13 +350,102 @@ strip src/sexcoin-cli.exe
 strip src/sexcoind.exe
 strip src/qt/sexcoin-qt.exe"
 }
-
-
 #*****************************************************************************
-#
 # End Package Definition Functions
+#*****************************************************************************
+
+
+#*****************************************************************************
+#
+# General Functions
 #
 #*****************************************************************************
+function use_custom_basedir() {
+    # Check if user set CUSTOM_BASEDIR and if we can use it
+    # Return 0 if we are using it, 1 otherwise
+    if [ "$CUSTOM_BASEDIR"x == "x" ] ; then
+        return 1
+    fi
+
+    # Expand any ~ now or it will cause problems later
+    eval CUSTOM_BASEDIR="$CUSTOM_BASEDIR"
+
+    # check for whitespace in path
+    if [ "${CUSTOM_BASEDIR/[:space:]}"x != "${CUSTOM_BASEDIR}"x ] ; then
+        echo "Unable to use your CUSTOM_BASEDIR:"
+        echo "   $CUSTOM_BASEDIR"
+        echo "because it has a space in it which will cause build problems."
+        return 1
+    fi
+
+    # go ahead and use it
+    BASEDIR="$CUSTOM_BASEDIR"
+    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
+    echo "Using custom directory $BASEDIR"
+}
+
+
+function use_default_basedir() {
+    # Use default basedir if it's ok
+    local d="$(pwd)/src"
+
+    # check for whitespace in path
+    if [ "${d/([:space:])}"x != "${d}"x ] ; then
+        echo "Unable to use your current working directory as default base dir:"
+        echo "   $d"
+        echo "It has a space which will cause problems with the build."
+        return 1
+    fi
+    #no space, let it be used
+    BASEDIR="$d"
+    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
+    echo "Using default directory: $BASEDIR"
+}
+
+
+function use_failsafe_basedir() {
+    # using something that should be ok no matter what
+    BASEDIR=/tmp/src
+    [ -d "$BASEDIR" ] || mkdir -p "$BASEDIR" || return 1
+    echo "Using failsafe directory: $BASEDIR"
+}
+
+
+function set_basedir() {
+    if ! use_custom_basedir ; then
+        if ! use_default_basedir ; then
+            if ! use_failsafe_basedir ; then
+                echo "Can't get usable base directory"
+                exit 1
+            fi
+        fi
+    fi
+}
+
+
+function check_toolchain() {
+    echo -n "Checking for missing tools..."
+    missing=$(pacman -Q $MSYS2_REQUIRED_PKGS 2>&1 | \
+              awk '/package .* was not found/{print $3}' | sed "s/'//g" )
+    if [ -n "$missing" ] ; then
+        echo "Installing $missing ..."
+        pacman -S $missing && echo "done." || return 1
+    else
+        echo "All Installed"
+    fi
+    echo -n "      Checking path to gcc..."
+    gcc -v >/dev/null 2>&1
+    if  [ $? -ne 0 ] ; then
+       echo "gcc not found, path contains:"
+       echo "     $PATH"
+       echo "     /mingw64/bin or /mingw32/bin should be first."
+       echo "     Check for conflicting .profile or .bashrc in ~/"
+       return 1
+    else
+       echo "OK"
+    fi
+    return 0
+}
 
 
 function mdfive() {
@@ -475,6 +465,7 @@ function mdfive() {
     echo "MD5 Check Failed for $1"
     return 1
 }
+
 
 function unpack() {
     # un{tar,zip,bzip,p7zip} a sourceball
@@ -559,6 +550,7 @@ function unpack() {
     return
 }
 
+
 function download_is_cached() {
     # checks $CACHEDIR to see if a download is already locally present
     # $1 = Download filename (no path)
@@ -572,6 +564,7 @@ function download_is_cached() {
     fi
     return 1
 }
+
 
 function download() {
     # Download a file from URL (if not present in local "cache"), optionally
@@ -642,6 +635,7 @@ function download() {
     return 1
 }
 
+
 function clean() {
     local pkg=""
 
@@ -656,6 +650,7 @@ function clean() {
     done
 }
 
+
 function buildcmds() {
     local pkg=""
 
@@ -669,6 +664,7 @@ function buildcmds() {
     done
 }
 
+
 function download_pkgs() {
     local pkg=""
 
@@ -680,6 +676,7 @@ function download_pkgs() {
         download "$url" "$src" "$md5" || exit 1
     done
 }
+
 
 function unpack_pkgs() {
     local pkg=""
@@ -697,6 +694,7 @@ function unpack_pkgs() {
         unpack "$src" "$unpackdir" || exit 1
     done
 }
+
 
 function build_pkgs() {
     local pkg=""
@@ -739,6 +737,7 @@ function build_pkgs() {
         fi
     done
 }
+
 
 function status_pkgs() {
     local pkg=''
@@ -795,6 +794,8 @@ function status_pkgs() {
 
     done
 }
+
+
 function init_pkg_args() {
     # $1 through $n passed direclty to this script should be list of packages
     #
@@ -842,6 +843,7 @@ function init_pkg_args() {
     return 0
 }
 
+
 function dedup_PKGS() {
     local pkg=''
     local newpkg=''
@@ -865,6 +867,7 @@ function dedup_PKGS() {
     PKGS="$newpkgs"
 }
 
+
 function append_to_PKGS() {
     while [ "$#" -gt 0 ] ; do
         if [ "$PKGS"x == ""x ] ; then
@@ -875,6 +878,7 @@ function append_to_PKGS() {
         shift 1
     done
 }
+
 
 function append_to_DEPS() {
     while [ "$#" -gt 0 ] ; do
@@ -887,6 +891,7 @@ function append_to_DEPS() {
     done
 }
 
+
 function valid_pkg() {
     local pkg=''
     for pkg in $MASTERPKGLIST ; do
@@ -894,6 +899,7 @@ function valid_pkg() {
     done
     return 1
 }
+
 
 function get_deps() {
     local  pkgdep=''
@@ -918,6 +924,7 @@ function get_deps() {
 
 }
 
+
 function usage() {
     echo "  Usage: $0 [SUBCMD] [PKG]..."
     echo ""
@@ -936,12 +943,34 @@ function usage() {
     echo "          help  This help message"
     echo ""
 }
+#*****************************************************************************
+# End of Functions
+#*****************************************************************************
 
-cd "$BASEDIR"
 
-SUBCOMMANDS="clean cleanall buildcmds buildcmdsall pkgs download downloadall \
+#*****************************************************************************
+#
+# Main Execution start
+#
+#*****************************************************************************
+SUBCOMMANDS="clean cleanall buildcmds buildcmdsall pkgs download downloadall \ 
              unpack unpackall build buildall deps dirs status statusall help"
 
+# Directory used to store a copy of downloaded source packages. They are
+# not deleted during a "clean up" run of this script.
+CACHEDIR=${BASEDIR}/.download_cache
+[ -d "$CACHEDIR" ] || mkdir -p "$CACHEDIR"
+
+# Make this available for use for in buildcmds with make and mingw32-make
+# -j option. (can break the make, so I removed -j's from some buildcmds)
+NPROC=$(/usr/bin/nproc)
+
+# Toolchain/tools packages and check/install function
+MSYS2_REQUIRED_PKGS="git wget diffutils p7zip unzip automake-wrapper autoconf \
+                     tar libtool mingw-w64-x86_64-gcc make pkg-config \
+                     mingw-w64-x86_64-make"
+
+set_basedir || cd "$BASEDIR" || exit 1
 
 # Handle no subcommand and invalid subcommand
 if [ "$#" -lt 1 ] ; then
