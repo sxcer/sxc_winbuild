@@ -207,9 +207,9 @@ QRENCODE_SRC=${QRENCODE}-${QRENCODE_VER}.tar.gz
 QRENCODE_MD5=be545f3ce36ea8fbb58612d72c4222de
 QRENCODE_DEPS="LIBPNG"
 QRENCODE_MSYS2_BUILDCMDS="# qrencode build commands
-      LIBS='../libpng-1.6.12/.libs/libpng.a /mingw64/lib/libz.a' \\
-png_CFLAGS='-I../libpng-1.6.12' \\
-  png_LIBS='-L../libpng-1.6.12/.libs'  \\
+      LIBS='../libpng-${LIBPNG_VER}/.libs/libpng.a /mingw64/lib/libz.a' \\
+png_CFLAGS='-I../libpng-${LIBPNG_VER}' \\
+  png_LIBS='-L../libpng-${LIBPNG_VER}/.libs'  \\
 ./configure --enable-static --disable-shared --without-tools
 make -j$((NPROC*2))"
 }
