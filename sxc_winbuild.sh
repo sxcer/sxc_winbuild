@@ -813,8 +813,7 @@ function status_pkgs() {
 
         echo -n "      Cached: "
         if [ -f "$CACHEDIR/$src" ] ; then
-             echo -n "Yes, size="
-             du -sh $CACHEDIR/$src | awk '{print $1}'
+             echo "Yes"
              echo -n "     MD5 Sum: "
              local temp=$(md5sum "$CACHEDIR/$src")
              local  sum=${temp:0:32}
@@ -829,11 +828,7 @@ function status_pkgs() {
 
         echo -n "  Unpack Dir: "
         if [ -d "$BASEDIR/$unpackdir" ] ; then
-             echo -n "Present, size="
-             size=$(du -sh $BASEDIR/$unpackdir | awk '{print $1}')
-             filecount=$(find $BASEDIR/$unpackdir -type f | wc -l)
-             dircount=$(find $BASEDIR/$unpackdir -type d | wc -l)
-             echo "$size Dirs=$dircount Files=$filecount"
+             echo "Present"
         else
             echo "Not Present"
         fi
