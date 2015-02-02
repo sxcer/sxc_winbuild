@@ -540,11 +540,13 @@ function unpack() {
             return 0
     fi
 
-    # remove any existing unpackdir for this pkg
+    # skip unpack if unpackdir already exists for this pkg
+    # (you'll have to run clean for it)
     if [ -d "$unpackpath" ] ; then
-        echo "Removing existing unpackdir:"
+        echo "Not touching existing unpackdir:"
         echo "$unpackpath"
-        /bin/rm -rf "$unpackpath"
+        return 0
+        #/bin/rm -rf "$unpackpath"
     fi
 
     # Get final extension ( from the end back to rightmost . )
