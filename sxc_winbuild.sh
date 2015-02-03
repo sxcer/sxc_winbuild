@@ -133,11 +133,10 @@ make -j$((NPROC*2))"
 
 function init_BOOST_vars() {
 BOOST=boost
-BOOST_VER=1_55_0
-BOOST_URL=http://sourceforge.net/projects/boost/files/boost/1.55.0
-BOOST_SRC=${BOOST}_${BOOST_VER}.7z
-BOOST_MD5=4e5bbc15fc8c80df8be428f8a5b5a823
-BOOST_DEPS=""
+BOOST_VER=1_57_0
+BOOST_URL=http://sourceforge.net/projects/boost/files/boost/1.57.0
+BOOST_SRC=${BOOST}_${BOOST_VER}.tar.bz2
+BOOST_MD5=1be49befbdd9a5ce9def2983ba3e7b76
 BOOST_UNPACKDIR="${BOOST}_${BOOST_VER}"
 GCC_VER_TOKEN=$(/mingw64/bin/gcc -v 2>&1 | \
                 awk '/gcc version/{print $3}' | \
@@ -174,11 +173,10 @@ mingw32-make.exe -j$((NPROC*2)) -f Makefile.mingw init upnpc-static"
 
 function init_PROTOBUF_vars() {
 PROTOBUF=protobuf
-PROTOBUF_VER=2.5.0
-PROTOBUF_URL=http://protobuf.googlecode.com/files
-PROTOBUF_SRC=${PROTOBUF}-${PROTOBUF_VER}.zip
-PROTOBUF_MD5=2394c001bdb33f57efbcdd436bf12c83
-PROTOBUF_DEPS=""
+PROTOBUF_VER=2.6.1
+PROTOBUF_URL=https://github.com/google/protobuf/releases/download/v2.6.1
+PROTOBUF_SRC=${PROTOBUF}-${PROTOBUF_VER}.tar.bz2
+PROTOBUF_MD5=11aaac2d704eef8efd1867a807865d85
 PROTOBUF_MSYS2_BUILDCMDS="# protobuf build commands
 ./configure --disable-shared
 make"
@@ -187,11 +185,11 @@ make"
 
 function init_LIBPNG_vars() {
 LIBPNG=libpng
-LIBPNG_VER=1.6.12
-LIBPNG_URL=http://prdownloads.sourceforge.net/libpng
-LIBPNG_SRC=${LIBPNG}-${LIBPNG_VER}.tar.gz
-LIBPNG_MD5=297388a6746a65a2127ecdeb1c6e5c82
-LIBPNG_DEPS=""
+LIBPNG_VER=1.6.16
+LIBPNG_URL=http://download.sourceforge.net/libpng
+LIBPNG_URL=ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng16
+LIBPNG_SRC=${LIBPNG}-${LIBPNG_VER}.tar.xz
+LIBPNG_MD5=23b7286b5d4a86de950fd2ffc5cac742
 LIBPNG_MSYS2_BUILDCMDS="# libpng build commands
 ./configure --disable-shared
 make -j$((NPROC*2))
@@ -217,12 +215,11 @@ make -j$((NPROC*2))"
 
 function init_QT_vars() {
 QT=qtbase
-QT_VER=5.3.1
-QT_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.1/submodules
-QT_SRC=qtbase-opensource-src-${QT_VER}.7z
-QT_MD5=ed0b47dbb77d4aa13e65a8a25c6e8e04
-QT_DEPS="LIBPNG OPENSSL"
-QT_UNPACKDIR=qtbase-opensource-src-5.3.1
+QT_VER=5.3.2
+QT_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.2/submodules
+QT_SRC=qtbase-opensource-src-${QT_VER}.zip
+QT_MD5=1a81aafd9d63168e9d0d1056ae0cc5d2
+QT_UNPACKDIR=qtbase-opensource-src-5.3.2
 QT_MSYS2_BUILDCMDS="# qtbase build commands
 mingw32-make confclean
 ./configure.exe  -I ${BASEDIR}/libpng-${LIBPNG_VER} \\
@@ -258,12 +255,11 @@ mingw32-make -j$((NPROC*2))"
 
 function init_QTTOOLS_vars() {
 QTTOOLS=qttools
-QTTOOLS_VER=5.3.1
-QTTOOLS_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.1/submodules
-QTTOOLS_SRC=qttools-opensource-src-${QT_VER}.7z
-QTTOOLS_MD5=8cce6f38f3d59cad495aed0c0eab8cea
-QTTOOLS_DEPS="QT"
-QTTOOLS_UNPACKDIR=qttools-opensource-src-5.3.1
+QTTOOLS_VER=5.3.2
+QTTOOLS_URL=http://download.qt-project.org/official_releases/qt/5.3/5.3.2/submodules
+QTTOOLS_SRC=qttools-opensource-src-${QT_VER}.zip
+QTTOOLS_MD5=d2152ab42db37f1a8ef98a3fcce34615
+QTTOOLS_UNPACKDIR=qttools-opensource-src-5.3.2
 QTTOOLS_MSYS2_BUILDCMDS="# qttools build commands
 export PATH=\"$PATH:${BASEDIR}/${QT_UNPACKDIR}/bin\"
 qmake.exe qttools.pro
@@ -273,11 +269,10 @@ mingw32-make -j$((NPROC*2))"
 
 function init_BTC_vars() {
 BTC=bitcoin
-BTC_VER=0.9.2.1
+BTC_VER=0.9.3
 BTC_URL=https://github.com/bitcoin/bitcoin/archive
-BTC_SRC=v0.9.2.1.zip
-BTC_MD5=
-BTC_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS"
+BTC_SRC=v0.9.3.zip
+BTC_MD5=cb88d813b89372de2d4012fa9c7ba609
 BTC_MSYS2_BUILDCMDS="# bitcoin build commands
 ./autogen.sh
 CPPFLAGS=\" \\
