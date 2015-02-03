@@ -94,16 +94,32 @@ CUSTOM_BASEDIR=
 
 #Master list of Packages
 MASTERPKGLIST="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS\
- BTC SXCNG"
+ BTC SXCNG SXC"
 
  
+# Define <PKG>_DEPS outside of functions that define other package vars.
+#
+# Some package vars may depend on vars that are defined by dependency packages.
+#
+# So we need to know the dependencies for a package before we initialize it's
+# variables.
+# If a package has no dependencies, ther is no need to define an empty var.
+# For example OPENSSL_DEPS="" is not necessary.
+
+QRENCODE_DEPS="LIBPNG"
+QT_DEPS="LIBPNG OPENSSL"
+QTTOOLS_DEPS="QT"
+BTC_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS"
+SXCNG_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS"
+SXC_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE QT QTTOOLS"
+BTCNOGUI_DEPS="OPENSSL BDB BOOST MINIUPNPC PROTOBUF"
+
 function init_OPENSSL_vars() {
 OPENSSL=openssl
 OPENSSL_VER=1.0.1l
 OPENSSL_URL=http://www.openssl.org/source
 OPENSSL_SRC=${OPENSSL}-${OPENSSL_VER}.tar.gz
 OPENSSL_MD5=cdb22925fc9bc97ccbf1e007661f2aa6
-OPENSSL_DEPS=""
 OPENSSL_MSYS2_BUILDCMDS="# openssl build commands
 ./Configure no-zlib no-shared no-dso no-krb5 no-camellia no-capieng no-cast \\
             no-cms no-dtls1 no-gost no-gmp no-heartbeats no-idea no-jpake \\
@@ -119,7 +135,6 @@ BDB_VER=4.8.30.NC
 BDB_URL=http://download.oracle.com/berkeley-db
 BDB_SRC=${BDB}-${BDB_VER}.tar.gz
 BDB_MD5=a14a5486d6b4891d2434039a0ed4c5b7
-BDB_DEPS=""
 BDB_MSYS2_BUILDCMDS="# bdb 4.8.30.NC build commands
 cd build_unix
 ../dist/configure \\
@@ -161,13 +176,17 @@ BOOST_MSYS2_BUILDCMDS="# boost build commands
 
 function init_MINIUPNPC_vars() {
 MINIUPNPC=miniupnpc
-MINIUPNPC_VER=1.9
-MINIUPNPC_URL=http://miniupnp.free.fr/files
+MINIUPNPC_VER=1.9.20141128
+MINIUPNPC_URL=http://miniupnp.free.fr/files/download.php?file=
 MINIUPNPC_SRC=${MINIUPNPC}-${MINIUPNPC_VER}.tar.gz
-MINIUPNPC_MD5=5ef3ba321e6df72d6519b728b292073e
-MINIUPNPC_DEPS=""
+MINIUPNPC_MD5=3d2fcd3a3157f0d68343dc008e9196d4
 MINIUPNPC_MSYS2_BUILDCMDS="# miniupnpc build commands
-mingw32-make.exe -j$((NPROC*2)) -f Makefile.mingw init upnpc-static"
+#by default symlinks just copy in msys2
+#so remove any miniupnpc dir first
+[ -d ../miniupnpc ] && rm -rf ../miniupnpc
+mingw32-make.exe -j$((NPROC*2)) -f Makefile.mingw init upnpc-static
+cd ..
+ln -s miniupnpc-${MINIUPNPC_VER} miniupnpc"
 }
 
 
@@ -203,7 +222,6 @@ QRENCODE_VER=3.4.4
 QRENCODE_URL=http://fukuchi.org/works/qrencode
 QRENCODE_SRC=${QRENCODE}-${QRENCODE_VER}.tar.gz
 QRENCODE_MD5=be545f3ce36ea8fbb58612d72c4222de
-QRENCODE_DEPS="LIBPNG"
 QRENCODE_MSYS2_BUILDCMDS="# qrencode build commands
       LIBS='../libpng-${LIBPNG_VER}/.libs/libpng.a /mingw64/lib/libz.a' \\
 png_CFLAGS='-I../libpng-${LIBPNG_VER}' \\
@@ -311,13 +329,47 @@ strip src/qt/bitcoin-qt.exe"
 }
 
 
+function init_BTCNOGUI_vars() {
+BTCNOGUI=bitcoin
+BTCNOGUI_VER=0.9.3
+BTCNOGUI_URL=https://github.com/bitcoin/bitcoin/archive
+BTCNOGUI_SRC=v0.9.3.zip
+BTCNOGUI_MD5=cb88d813b89372de2d4012fa9c7ba609
+BTCNOGUI_MSYS2_BUILDCMDS="# bitcoin build commands
+./autogen.sh
+CPPFLAGS=\" \\
+    -I${BASEDIR}/boost_${BOOST_VER} \\
+    -I${BASEDIR}/db-${BDB_VER}/build_unix \\
+    -I${BASEDIR}/openssl-${OPENSSL_VER}/include \\
+    -I${BASEDIR} \\
+    -I${BASEDIR}/protobuf-${PROTOBUF_VER}/src\" \\
+LDFLAGS=\" \\
+    -L${BASEDIR}/boost_${BOOST_VER}/stage/lib \\
+    -L${BASEDIR}/db-${BDB_VER}/build_unix \\
+    -L${BASEDIR}/openssl-${OPENSSL_VER} \\
+    -L${BASEDIR}/miniupnpc-${MINIUPNPC_VER} \\
+    -L${BASEDIR}/protobuf-${PROTOBUF_VER}/src/.libs\" \\
+./configure \\
+    --disable-upnp-default \\
+    --disable-tests \\
+    --with-boost-system=$BOOST_SUFFIX \\
+    --with-boost-filesystem=$BOOST_SUFFIX \\
+    --with-boost-program-options=$BOOST_SUFFIX \\
+    --with-boost-thread=$BOOST_SUFFIX \\
+    --with-boost-chrono=$BOOST_SUFFIX \\
+    --with-protoc-bindir=${BASEDIR}/protobuf-${PROTOBUF_VER}/src
+make -j$((NPROC*2))
+strip src/bitcoin-cli.exe
+strip src/bitcoind.exe"
+}
+
+
 function init_SXCNG_vars() {
 SXCNG=sexcoin-ng
 SXCNG_VER=master
 SXCNG_URL=https://github.com/sxcer/sexcoin-ng/archive
 SXCNG_SRC=master.zip
-SXCNG_MD5=
-SXCNG_DEPS="OPENSSL BDB BOOST MINIUPNPC LIBPNG QRENCODE PROTOBUF QT QTTOOLS"
+SXCNG_MD5=7d4fbac730b0a3eb93d858978021e8d1
 SXCNG_MSYS2_BUILDCMDS="# sexcoin-ng build commands
 ./autogen.sh
 CPPFLAGS=\" \\
@@ -353,6 +405,36 @@ make -j$((NPROC*2))
 strip src/sexcoin-cli.exe
 strip src/sexcoind.exe
 strip src/qt/sexcoin-qt.exe"
+}
+
+function init_SXC_vars() {
+SXC=sexcoin
+SXC_VER=0.6.4.7
+SXC_URL=
+SXC_SRC=sexcoin-0.6.4.7.tar.gz
+SXC_MD5=ae8533c53bd2425838d9efb7e6b01f9c
+SXC_MSYS2_BUILDCMDS="# sexcoin build commands
+export PATH=\"${BASEDIR}/${QT_UNPACKDIR}/bin:$PATH\"
+export QTDIR=${BASEDIR}/${QT_UNPACKDIR}
+qmake \\
+    USE_BUILD_INFO=1 USE_QRCODE=1 RELEASE=1 USE_UPNP=1 \\
+    SRCDIR=/home/sxcer/src/sxc_winbuild/src \\
+    BOOST_LIB_SUFFIX=-${BOOST_SUFFIX} \\
+    BOOST_INCLUDE_PATH=${BASEDIR}/boost_${BOOST_VER} \\
+    BOOST_LIB_PATH=${BASEDIR}/boost_${BOOST_VER}/stage/lib \\
+    BDB_INCLUDE_PATH=${BASEDIR}/db-4.8.30.NC/build_unix \\
+    BDB_LIB_PATH=${BASEDIR}/db-4.8.30.NC/build_unix/ \\
+    BDB_LIB_SUFFIX=-4.8 \\
+    OPENSSL_INCLUDE_PATH=${BASEDIR}/openssl-${OPENSSL_VER}/include \\
+    OPENSSL_LIB_PATH=${BASEDIR}/openssl-${OPENSSL_VER} \\
+    MINIUPNPC_INCLUDE_PATH=${BASEDIR} \\
+    MINIUPNPC_LIB_PATH=${BASEDIR}/miniupnpc \\
+    QRENCODE_INCLUDE_PATH=${BASEDIR}/qrencode-${QRENCODE_VER}/include \\
+    QRENCODE_LIB_PATH=${BASEDIR}/qrencode-${QRENCODE_VER}/.libs \\
+    QTDIR=${BASEDIR}/${QT_UNPACKDIR} \\
+    sexcoin-qt.pro.windows
+make
+strip release/sexcoin-qt.exe"
 }
 #*****************************************************************************
 # End Package Definition Functions
@@ -871,10 +953,9 @@ function init_pkg_args() {
 
     for arg in $args ; do
         if valid_pkg "$arg" ; then
-            eval init_${arg}_vars
             DEPS=''
             get_deps "$arg" || return 1
-            append_to_PKGS "$DEPS" "$arg"
+            append_to_PKGS "$DEPS"
             DEPS=''
         else
             echo "$arg is not a valid PKG, run $0 pkgs to see valid PKGs"
@@ -883,6 +964,8 @@ function init_pkg_args() {
     done
 
     dedup_PKGS
+    echo "Final PKG list including DEPS:"
+    echo "      $PKGS"
     return 0
 }
 
@@ -948,23 +1031,28 @@ function get_deps() {
     local  pkgdep=''
     local pkgdeps=''
 
+    #get the deps for this package (which are defined outside
+    # the package var init function)
     eval pkgdeps=\"\$$1_DEPS\"
 
     if [ -n "$pkgdeps" ] ; then
         #iterate and recurse on pkgdeps 
         for pkgdep in $pkgdeps ; do
            if valid_pkg $pkgdep ; then
-                eval init_${pkgdep}_vars
-                get_deps $pkgdep;
+               get_deps $pkgdep;
            else
                return 0
            fi
         done
-    else
-        append_to_DEPS "$1"
-        return 0
     fi
 
+    # at this point, this package has all
+    # it's dependency package's vars init'd 
+    # so initialize this package's vars and
+    # append it to the DEPS
+    eval init_${1}_vars
+    append_to_DEPS "$1"
+    return 0
 }
 
 
@@ -1106,7 +1194,7 @@ case $1 in
         ;;
     deps)
         shift 1
-        init_pkg_args $* && echo "$PKGS"
+        init_pkg_args $*
         exit
         ;;
     status)
