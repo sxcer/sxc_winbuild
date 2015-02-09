@@ -466,7 +466,7 @@ cd release/
 zip -r sexcoin-qt-${SXC_VER}.zip \$pkgdir/
 cd ..
 
-echo \"sexcoin-qt.exe packaged in \$PWD/sexcoin-sexcoin-qt-${SXC_VER}.zip\"
+echo \"sexcoin-qt.exe packaged in \$PWD/release/sexcoin-sexcoin-qt-${SXC_VER}.zip\"
 "
 }
 #*****************************************************************************
