@@ -435,7 +435,39 @@ qmake \\
     QTDIR=${BASEDIR}/${QT_UNPACKDIR} \\
     sexcoin-qt.pro.windows
 make
-strip release/sexcoin-qt.exe"
+strip release/sexcoin-qt.exe
+
+#package up the binary with DLL deps
+
+#packaging directory
+pkgdir=sexcoin-qt-${SXC_VER}
+
+#create packaging dir, wiping any existing packaging dir
+[ -d \"release/\$pkgdir\" ] && rm -rf \"release/\$pkgdir\"
+mkdir \"release/\$pkgdir\"
+
+#wipe any exisiting packaged sexcoin-qt.exe
+[ -f \"release/\${pkgdir}.zip\" ] && rm -rf \"release/\${pkgdir}.zip\"
+
+#copy the exe
+cp \"release/sexcoin-qt.exe\" \"release/\$pkgdir/\"
+
+# find dll's exe requires
+dlls=\$(ldd \"release/\${pkgdir}/sexcoin-qt.exe\" | \\
+       awk '/mingw64/{print \$3}')
+
+#copy the dlls to packaging dir
+for dll in \$dlls ; do
+    cp \"\$dll\" \"release/\$pkgdir/\" || exit 1
+done
+
+#\"package\" into a zip file
+cd release/
+zip -r sexcoin-qt-${SXC_VER}.zip \$pkgdir/
+cd ..
+
+echo \"sexcoin-qt.exe packaged in \$PWD/sexcoin-sexcoin-qt-${SXC_VER}.zip\"
+"
 }
 #*****************************************************************************
 # End Package Definition Functions
