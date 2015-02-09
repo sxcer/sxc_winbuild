@@ -434,7 +434,7 @@ qmake \\
     QRENCODE_LIB_PATH=${BASEDIR}/qrencode-${QRENCODE_VER}/.libs \\
     QTDIR=${BASEDIR}/${QT_UNPACKDIR} \\
     sexcoin-qt.pro.windows
-make
+make || exit 1
 strip release/sexcoin-qt.exe
 
 #package up the binary with DLL deps
