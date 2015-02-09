@@ -409,10 +409,11 @@ strip src/qt/sexcoin-qt.exe"
 
 function init_SXC_vars() {
 SXC=sexcoin
-SXC_VER=0.6.4.7
-SXC_URL=
-SXC_SRC=sexcoin-0.6.4.7.tar.gz
-SXC_MD5=ae8533c53bd2425838d9efb7e6b01f9c
+SXC_VER=0.6.4.6
+SXC_URL=https://github.com/sxcer/sexcoin/archive/
+SXC_SRC=build-with-.9deps.zip
+SXC_MD5=86923a53f53f00c3799c100f81657608
+SXC_UNPACKDIR=sexcoin-build-with-.9deps
 SXC_MSYS2_BUILDCMDS="# sexcoin build commands
 export PATH=\"${BASEDIR}/${QT_UNPACKDIR}/bin:$PATH\"
 export QTDIR=${BASEDIR}/${QT_UNPACKDIR}
